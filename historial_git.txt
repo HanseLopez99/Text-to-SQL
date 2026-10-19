@@ -1,0 +1,43 @@
+commit 448a2d72e89a2f2d295c0eb0663d2f04d208bd72
+Author: Hansel López <halm29799@gmail.com>
+Date:   2026-10-25 23:16:17 -0600
+
+    Setup inicial del proyecto Text-to-SQL
+    
+    - Estructura de carpetas creada
+    - Archivos base: config.json, requirements.txt, README.md
+    - Documentación: BITACORA.md, CONTRIBUCIONES.md
+    - 12 esquemas SQL (10 entrenamiento, 2 validación)
+    - solucion.py con función generar_sql()
+    - 4 notebooks de trabajo
+    - Dataset de validación propio (40 preguntas)
+    - Scripts de evaluación y setup MySQL
+    - .gitignore configurado
+
+ BITACORA.md                                       | 121 +++++++
+ CONTRIBUCIONES.md                                 |  15 +
+ Proyecto_3_Texto_a_SQL.pdf                        | Bin 0 -> 44195 bytes
+ README.md                                         |  81 +++++
+ config.json                                       |   6 +
+ datos/esquemas/entrenamiento/agencia_viajes.sql   |  66 ++++
+ datos/esquemas/entrenamiento/biblioteca.sql       |  55 ++++
+ datos/esquemas/entrenamiento/cine.sql             |  60 ++++
+ datos/esquemas/entrenamiento/gimnasio.sql         |  63 ++++
+ datos/esquemas/entrenamiento/hospital.sql         |  62 ++++
+ datos/esquemas/entrenamiento/inmobiliaria.sql     |  66 ++++
+ datos/esquemas/entrenamiento/restaurante.sql      |  57 ++++
+ datos/esquemas/entrenamiento/taller_mecanico.sql  |  63 ++++
+ datos/esquemas/entrenamiento/tienda_online.sql    |  62 ++++
+ datos/esquemas/entrenamiento/universidad.sql      |  49 +++
+ datos/esquemas/validacion/finanzas_personales.sql |  59 ++++
+ datos/esquemas/validacion/logistica.sql           |  68 ++++
+ datos/validacion/validacion.json                  |  51 +++
+ evaluar.py                                        | 166 ++++++++++
+ notebooks/01_exploracion_datos.ipynb              | 193 +++++++++++
+ notebooks/02_generacion_datos.ipynb               | 261 +++++++++++++++
+ notebooks/03_entrenamiento.ipynb                  | 371 ++++++++++++++++++++++
+ notebooks/04_evaluacion.ipynb                     | 310 ++++++++++++++++++
+ requirements.txt                                  |  26 ++
+ setup_mysql.sh                                    |  61 ++++
+ solucion.py                                       | 242 ++++++++++++++
+ 26 files changed, 2634 insertions(+)
