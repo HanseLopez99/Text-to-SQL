@@ -1,3 +1,23 @@
+commit 9eff8501f25c4b1fdfb3505eacbb3ed9fdf9aa9c
+Author: Hansel López <halm29799@gmail.com>
+Date:   2026-10-25 23:19:56 -0600
+
+    Dataset de entrenamiento generado: 2,419 pares pregunta-SQL
+    
+    - 1,544 preguntas fáciles (peso 1)
+    - 416 preguntas medias (peso 2)
+    - 459 preguntas difíciles (peso 3)
+    - Generados sobre 10 esquemas propios
+    - Incluye variaciones y queries adicionales
+
+ .gitignore                             |  54 ++++
+ datos/descartes/reporte_descartes.json |  12 +
+ expandir_dataset.py                    | 260 +++++++++++++++++++
+ expansion_final.py                     | 189 ++++++++++++++
+ generar_dataset.py                     | 443 +++++++++++++++++++++++++++++++++
+ historial_git.txt                      |  43 ++++
+ 6 files changed, 1001 insertions(+)
+
 commit 448a2d72e89a2f2d295c0eb0663d2f04d208bd72
 Author: Hansel López <halm29799@gmail.com>
 Date:   2026-10-25 23:16:17 -0600
