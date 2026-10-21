@@ -1,11 +1,11 @@
 {
-  "total_generados": 700,
+  "total_generados": 704,
   "duplicados": 13,
-  "validos": 687,
+  "validos": 691,
   "por_nivel": {
     "facil": 327,
-    "media": 227,
-    "dificil": 133
+    "media": 230,
+    "dificil": 134
   },
   "descartes": [],
   "nota": "Pendientes de validación en MySQL 8.4.10"

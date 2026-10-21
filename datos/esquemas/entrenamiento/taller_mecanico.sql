@@ -23,7 +23,7 @@ CREATE TABLE vehiculos (
     FOREIGN KEY (cliente_id) REFERENCES clientes(id)
 ) COMMENT='Vehículos de los clientes del taller';
 
-CREATE TABLE mecánicos (
+CREATE TABLE mecanicos (
     id INT AUTO_INCREMENT PRIMARY KEY COMMENT 'Identificador único del mecánico',
     nombre VARCHAR(150) NOT NULL COMMENT 'Nombre completo del mecánico',
     especialidad VARCHAR(100) COMMENT 'Especialidad: motor, suspensión, eléctrica, frenos',
