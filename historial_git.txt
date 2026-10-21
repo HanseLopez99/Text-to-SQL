@@ -1,3 +1,31 @@
+commit 6128798700bb8e613aa42a19244d541a81f6dc64
+Author: Hansel López <halm29799@gmail.com>
+Date:   2026-10-25 23:23:46 -0600
+
+    Corregir nombre de tabla: mecanicos (sin tilde)
+    
+    - Cambiar 'mecánicos' por 'mecanicos' en taller_mecanico.sql
+    - Actualizar dataset_completo.json (47 reemplazos)
+    - Regenerar dataset: 2,423 pares únicos
+    - Crear descargar_spider.py y validar_dataset.py
+    - Expandir validación a 41 preguntas (21 finanzas + 20 logistica)
+
+ datos/descartes/reporte_descartes.json           |   8 +-
+ datos/esquemas/entrenamiento/taller_mecanico.sql |   2 +-
+ datos/validacion/validacion.json                 |  12 +-
+ descargar_spider.py                              | 121 ++++++++++++++
+ validar_dataset.py                               | 191 +++++++++++++++++++++++
+ 5 files changed, 327 insertions(+), 7 deletions(-)
+
+commit 2c5fab6849c721afba047fda6904b516205ab444
+Author: Hansel López <halm29799@gmail.com>
+Date:   2026-10-25 23:19:57 -0600
+
+    Actualizar historial_git.txt
+
+ historial_git.txt | 20 ++++++++++++++++++++
+ 1 file changed, 20 insertions(+)
+
 commit 9eff8501f25c4b1fdfb3505eacbb3ed9fdf9aa9c
 Author: Hansel López <halm29799@gmail.com>
 Date:   2026-10-25 23:19:56 -0600
