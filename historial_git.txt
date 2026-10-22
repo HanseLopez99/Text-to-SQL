@@ -1,3 +1,29 @@
+commit b36598fe716d31cb6824660e4aec244a49e34d09
+Author: Hansel López <halm29799@gmail.com>
+Date:   2026-10-25 23:25:44 -0600
+
+    Agregar scripts de entrenamiento para Colab
+    
+    - preparar_datos_training.py: convierte dataset a formato entrenamiento
+    - entrenar_colab.py: script optimizado para GPU T4
+    - Dataset dividido: 2,180 train, 243 validation
+    - Distribución: fácil=1,542, medio=419, difícil=462
+
+ datos/entrenamiento/hf_dataset/train.json      | 13082 +++++++++++++++++++++++
+ datos/entrenamiento/hf_dataset/validation.json |  1460 +++
+ entrenar_colab.py                              |   260 +
+ preparar_datos_training.py                     |   121 +
+ 4 files changed, 14923 insertions(+)
+
+commit ec77705fce83dff7c40981b4a8417302b4122951
+Author: Hansel López <halm29799@gmail.com>
+Date:   2026-10-25 23:23:47 -0600
+
+    Actualizar historial_git.txt
+
+ historial_git.txt | 28 ++++++++++++++++++++++++++++
+ 1 file changed, 28 insertions(+)
+
 commit 6128798700bb8e613aa42a19244d541a81f6dc64
 Author: Hansel López <halm29799@gmail.com>
 Date:   2026-10-25 23:23:46 -0600
