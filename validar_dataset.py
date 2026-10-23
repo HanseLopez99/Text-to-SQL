@@ -1,124 +1,127 @@
 """
 validar_dataset.py
 Valida que todas las queries del dataset sean válidas en MySQL 8.4.10
-Requiere MySQL corriendo (local o Docker)
 """
 import json
-import mysql.connector
 import re
 from pathlib import Path
+import mysql.connector
 from tqdm import tqdm
 
-# Configuración MySQL
 DB_CONFIG = {
     "host": "localhost",
-    "port": 3306,
+    "port": 3307,
     "user": "root",
-    "password": "password",  # Cambiar según configuración
-    "charset": "utf8mb4"
+    "password": "text2sql",
+    "charset": "utf8mb4",
+    "database": "text_to_sql_test"
 }
 
-def crear_db_si_no_existe(cursor, db_name="text_to_sql_test"):
-    """Crea la base de datos de prueba si no existe."""
-    cursor.execute(f"CREATE DATABASE IF NOT EXISTS {db_name}")
-    cursor.execute(f"USE {db_name}")
+
+def limpiar_comentarios_sql(sql_text):
+    """Limpia los COMMENT de un schema SQL para compatibilidad."""
+    # Eliminar COMMENT en columnas
+    sql_text = re.sub(r"\s+COMMENT\s+'[^']*'", "", sql_text)
+    # Eliminar COMMENT de tabla
+    sql_text = re.sub(r"\)\s+COMMENT\s*=\s*'[^']*'", ")", sql_text)
+    return sql_text
 
 
-def cargar_esquemas():
-    """Carga todos los esquemas SQL."""
-    esquemas = {}
-    for path in Path("datos/esquemas").rglob("*.sql"):
-        nombre = path.stem
-        with open(path, 'r', encoding='utf-8') as f:
-            esquemas[nombre] = f.read()
-    return esquemas
+def setup_database(cursor):
+    """Crea o recrea la base de datos de prueba."""
+    cursor.execute("DROP DATABASE IF EXISTS text_to_sql_test")
+    cursor.execute("CREATE DATABASE text_to_sql_test CHARACTER SET utf8mb4")
+    cursor.execute("USE text_to_sql_test")
 
 
-def validar_schema(cursor, schema_sql, schema_name):
-    """Crea las tablas del esquema en la base de datos."""
-    # Limpiar tablas existentes
-    cursor.execute("SET FOREIGN_KEY_CHECKS = 0")
+def crear_tablas(cursor, schema_sql):
+    """Crea las tablas del esquema."""
+    # Limpiar comentarios
+    schema_clean = limpiar_comentarios_sql(schema_sql)
     
-    # Obtener tablas existentes
-    cursor.execute("SHOW TABLES")
-    tables = [row[0] for row in cursor.fetchall()]
-    
-    # Eliminar tablas
-    for table in tables:
-        try:
-            cursor.execute(f"DROP TABLE IF EXISTS `{table}`")
-        except:
-            pass
-    
-    cursor.execute("SET FOREIGN_KEY_CHECKS = 1")
-    
-    # Dividir el schema en statements individuales
+    # Dividir en statements
     statements = []
     current = []
-    
-    for line in schema_sql.split('\n'):
+    for line in schema_clean.split('\n'):
         line = line.strip()
         if not line or line.startswith('--'):
             continue
         current.append(line)
         if line.endswith(';'):
-            statements.append(' '.join(current))
+            stmt = ' '.join(current)
+            if stmt.strip() and stmt.strip() != ';':
+                statements.append(stmt)
             current = []
     
     if current:
-        statements.append(' '.join(current))
+        stmt = ' '.join(current).strip()
+        if stmt and stmt != ';':
+            statements.append(stmt)
     
-    # Ejecutar cada statement
     for stmt in statements:
-        if stmt.strip():
-            # Limpiar COMMENTs de tabla para compatibilidad
-            stmt = re.sub(r"\) COMMENT='[^']*';", ");", stmt)
-            stmt = re.sub(r"COMMENT '[^']*'", "", stmt)
+        stmt = stmt.strip()
+        if stmt:
             try:
                 cursor.execute(stmt)
             except mysql.connector.Error as e:
-                print(f"  ⚠ Error creando tabla en {schema_name}: {e}")
-                return False
+                return False, str(e)
     
-    return True
+    return True, None
 
 
-def validar_query(cursor, sql, timeout=5):
-    """Valida que una query sea sintácticamente correcta."""
+def validar_query(cursor, sql):
+    """Valida una query usando EXPLAIN."""
     try:
-        cursor.execute(f"SET SESSION MAX_EXECUTION_TIME={timeout*1000}")
-        # Solo analizar, no ejecutar
         cursor.execute(f"EXPLAIN {sql}")
+        cursor.fetchall()  # Consumir resultados
         return True, None
     except mysql.connector.Error as e:
+        try:
+            cursor.fetchall()  # Consumir resultados del error
+        except:
+            pass
         return False, str(e)
 
 
-def validar_dataset():
-    """Valida todo el dataset contra MySQL."""
-    print("Conectando a MySQL...")
+def cargar_esquemas():
+    """Carga todos los esquemas SQL."""
+    esquemas = {}
+    for path in Path("datos/esquemas/entrenamiento").glob("*.sql"):
+        with open(path, 'r', encoding='utf-8') as f:
+            esquemas[path.stem] = f.read()
+    return esquemas
+
+
+def main():
+    print("=" * 60)
+    print("VALIDACIÓN DE DATASET EN MySQL 8.4.10")
+    print("=" * 60)
     
+    # Conectar
     try:
         conn = mysql.connector.connect(**DB_CONFIG)
         cursor = conn.cursor()
-    except mysql.connector.Error as e:
-        print(f"❌ No se pudo conectar a MySQL: {e}")
-        print("\nOpciones:")
-        print("1. Iniciar Docker: open -a Docker")
-        print("2. Ejecutar: docker run -d --name mysql-text2sql -p 3306:3306 -e MYSQL_ROOT_PASSWORD=password mysql:8.4.10")
-        print("3. O instalar MySQL 8.4.10 localmente")
-        return None
+    except mysql.connector.Error:
+        # Intentar sin database
+        config = DB_CONFIG.copy()
+        config.pop("database", None)
+        try:
+            conn = mysql.connector.connect(**config)
+            cursor = conn.cursor()
+        except mysql.connector.Error as e:
+            print(f"❌ No se pudo conectar: {e}")
+            return
     
     print("✓ Conectado a MySQL")
+    setup_database(cursor)
+    print("✓ Base de datos creada")
     
     # Cargar dataset
     with open("datos/entrenamiento/dataset_completo.json", 'r', encoding='utf-8') as f:
         dataset = json.load(f)
     
-    print(f"Validando {len(dataset)} queries...")
-    
     esquemas = cargar_esquemas()
-    resultados = {"validos": [], "invalidos": []}
+    print(f"✓ {len(dataset)} queries a validar")
     
     # Agrupar por esquema
     por_esquema = {}
@@ -128,64 +131,94 @@ def validar_dataset():
             por_esquema[esquema] = []
         por_esquema[esquema].append(item)
     
-    # Validar cada esquema
+    validos = []
+    invalidos = []
+    
     for esquema_nombre, items in por_esquema.items():
         if esquema_nombre not in esquemas:
-            print(f"\n⚠ Esquema '{esquema_nombre}' no encontrado, omitiendo {len(items)} queries")
+            print(f"\n⚠ Esquema '{esquema_nombre}' no encontrado, {len(items)} queries omitidas")
+            invalidos.extend(items)
             continue
         
-        print(f"\n=== Validando esquema: {esquema_nombre} ({len(items)} queries) ===")
+        # Recrear tablas para este esquema
+        setup_database(cursor)
+        ok, err = crear_tablas(cursor, esquemas[esquema_nombre])
         
-        # Crear tablas
-        if not validar_schema(cursor, esquemas[esquema_nombre], esquema_nombre):
-            resultados["invalidos"].extend(items)
+        if not ok:
+            print(f"\n❌ Error creando tablas para {esquema_nombre}: {err}")
+            invalidos.extend(items)
             continue
         
-        # Validar cada query
+        print(f"\n=== {esquema_nombre} ({len(items)} queries) ===")
+        
+        esquema_validos = 0
+        esquema_invalidos = 0
+        
         for item in tqdm(items, desc=esquema_nombre):
             sql = item["sql"]
             valido, error = validar_query(cursor, sql)
             
             if valido:
-                resultados["validos"].append(item)
+                validos.append(item)
+                esquema_validos += 1
             else:
-                item["error"] = error
-                resultados["invalidos"].append(item)
+                item_err = item.copy()
+                item_err["error"] = error
+                invalidos.append(item_err)
+                esquema_invalidos += 1
+        
+        print(f"  ✓ Válidas: {esquema_validos}, ✗ Inválidas: {esquema_invalidos}")
     
     cursor.close()
     conn.close()
     
     # Resumen
     print(f"\n{'='*60}")
-    print(f"Resultados de validación:")
-    print(f"  Válidas: {len(resultados['validos'])}")
-    print(f"  Inválidas: {len(resultados['invalidos'])}")
-    print(f"  Total: {len(dataset)}")
+    print(f"RESULTADOS FINALES")
+    print(f"{'='*60}")
+    print(f"  Válidas:    {len(validos)}")
+    print(f"  Inválidas:  {len(invalidos)}")
+    print(f"  Total:      {len(dataset)}")
+    print(f"  % Válidas:  {len(validos)/len(dataset)*100:.1f}%")
+    
+    # Por nivel
+    for nivel in ["facil", "media", "dificil"]:
+        v = sum(1 for p in validos if p["nivel"] == nivel)
+        i = sum(1 for p in invalidos if p["nivel"] == nivel)
+        print(f"  {nivel}: válidas={v}, inválidas={i}")
     
     # Guardar resultados
     Path("datos/descartes").mkdir(exist_ok=True)
     
-    with open("datos/descartes/queries_invalidas.json", 'w', encoding='utf-8') as f:
-        json.dump(resultados["invalidos"], f, ensure_ascii=False, indent=2)
-    
-    # Guardar dataset válido
     with open("datos/entrenamiento/dataset_valido.json", 'w', encoding='utf-8') as f:
-        json.dump(resultados["validos"], f, ensure_ascii=False, indent=2)
+        json.dump(validos, f, ensure_ascii=False, indent=2)
+    
+    with open("datos/descartes/queries_invalidas.json", 'w', encoding='utf-8') as f:
+        json.dump(invalidos, f, ensure_ascii=False, indent=2)
+    
+    # Reporte de descartes
+    reporte = {
+        "total_generados": len(dataset),
+        "validos_mysql": len(validos),
+        "invalidos": len(invalidos),
+        "porcentaje_validos": round(len(validos)/len(dataset)*100, 1),
+        "descartados_sintaxis": sum(1 for i in invalidos if "syntax" in i.get("error", "").lower()),
+        "descartados_columna": sum(1 for i in invalidos if "unknown column" in i.get("error", "").lower()),
+        "descartados_tabla": sum(1 for i in invalidos if "doesn't exist" in i.get("error", "").lower()),
+        "descartados_otro": sum(1 for i in invalidos if "syntax" not in i.get("error", "").lower() and "unknown column" not in i.get("error", "").lower() and "doesn't exist" not in i.get("error", "").lower())
+    }
+    
+    with open("datos/descartes/reporte_descartes.json", 'w', encoding='utf-8') as f:
+        json.dump(reporte, f, ensure_ascii=False, indent=2)
     
     print(f"\n✓ Dataset válido guardado en datos/entrenamiento/dataset_valido.json")
     print(f"✓ Queries inválidas guardadas en datos/descartes/queries_invalidas.json")
     
-    return resultados
+    if len(validos) >= 2000:
+        print(f"\n✓ CUMPLE requisito mínimo: {len(validos)} pares válidos (>= 2000)")
+    else:
+        print(f"\n⚠ NO cumple mínimo: {len(validos)} pares válidos (se necesitan 2000)")
 
 
 if __name__ == "__main__":
-    resultados = validar_dataset()
-    
-    if resultados is None:
-        print("\n⚠ Validación omitida - MySQL no disponible")
-        print("Las queries serán validadas durante el entrenamiento en Colab")
-    elif len(resultados["validos"]) >= 2000:
-        print(f"\n✓ Dataset cumple requisito mínimo (2000+ pares válidos)")
-    else:
-        print(f"\n⚠ Dataset tiene {len(resultados['validos'])} pares válidos (mínimo 2000)")
-        print("Considera generar más datos o revisar queries inválidas")
+    main()

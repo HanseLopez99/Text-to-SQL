@@ -3,57 +3,300 @@
     "nombre": "finanzas_personales",
     "esquema": "CREATE TABLE cuentas (\n    id INT AUTO_INCREMENT PRIMARY KEY COMMENT 'Identificador único de la cuenta',\n    nombre VARCHAR(100) NOT NULL COMMENT 'Nombre de la cuenta bancaria',\n    tipo VARCHAR(30) NOT NULL COMMENT 'Tipo de cuenta: ahorro, corriente, inversión',\n    saldo DECIMAL(12,2) NOT NULL COMMENT 'Saldo actual de la cuenta en dólares',\n    moneda VARCHAR(5) NOT NULL DEFAULT 'USD' COMMENT 'Moneda de la cuenta',\n    fecha_apertura DATE NOT NULL COMMENT 'Fecha en que se abrió la cuenta'\n) COMMENT='Cuentas bancarias del usuario';\n\nCREATE TABLE categorias (\n    id INT AUTO_INCREMENT PRIMARY KEY COMMENT 'Identificador único de la categoría',\n    nombre VARCHAR(100) NOT NULL COMMENT 'Nombre de la categoría de gasto o ingreso',\n    tipo VARCHAR(20) NOT NULL COMMENT 'Tipo: ingreso, gasto',\n    descripcion TEXT COMMENT 'Descripción de la categoría'\n) COMMENT='Categorías para clasificar transacciones';\n\nCREATE TABLE transacciones (\n    id INT AUTO_INCREMENT PRIMARY KEY COMMENT 'Identificador único de la transacción',\n    cuenta_id INT NOT NULL COMMENT 'Cuenta asociada a la transacción',\n    categoria_id INT NOT NULL COMMENT 'Categoría de la transacción',\n    monto DECIMAL(12,2) NOT NULL COMMENT 'Monto de la transacción (positivo ingreso, negativo gasto)',\n    descripcion TEXT COMMENT 'Descripción o detalle de la transacción',\n    fecha DATE NOT NULL COMMENT 'Fecha en que se realizó la transacción',\n    FOREIGN KEY (cuenta_id) REFERENCES cuentas(id),\n    FOREIGN KEY (categoria_id) REFERENCES categorias(id)\n) COMMENT='Transacciones financieras del usuario';\n\nCREATE TABLE presupuestos (\n    id INT AUTO_INCREMENT PRIMARY KEY COMMENT 'Identificador único del presupuesto',\n    categoria_id INT NOT NULL COMMENT 'Categoría presupuestada',\n    monto_maximo DECIMAL(10,2) NOT NULL COMMENT 'Monto máximo asignado al presupuesto',\n    mes INT NOT NULL COMMENT 'Mes del presupuesto (1-12)',\n    anio INT NOT NULL COMMENT 'Año del presupuesto',\n    FOREIGN KEY (categoria_id) REFERENCES categorias(id)\n) COMMENT='Presupuestos mensuales por categoría';\n\nCREATE TABLE metas_ahorro (\n    id INT AUTO_INCREMENT PRIMARY KEY COMMENT 'Identificador único de la meta',\n    nombre VARCHAR(150) NOT NULL COMMENT 'Nombre de la meta de ahorro',\n    monto_objetivo DECIMAL(12,2) NOT NULL COMMENT 'Monto objetivo a alcanzar',\n    monto_actual DECIMAL(12,2) NOT NULL DEFAULT 0 COMMENT 'Monto ahorrado hasta ahora',\n    fecha_limite DATE COMMENT 'Fecha límite para alcanzar la meta',\n    completada BOOLEAN DEFAULT FALSE COMMENT 'Indica si la meta fue completada'\n) COMMENT='Metas de ahorro del usuario';\n\nCREATE TABLE tarjetas (\n    id INT AUTO_INCREMENT PRIMARY KEY COMMENT 'Identificador único de la tarjeta',\n    nombre VARCHAR(100) NOT NULL COMMENT 'Nombre de la tarjeta de crédito',\n    entidad VARCHAR(100) NOT NULL COMMENT 'Entidad emisora de la tarjeta',\n    limite_credito DECIMAL(10,2) NOT NULL COMMENT 'Límite de crédito de la tarjeta',\n    saldo_actual DECIMAL(10,2) NOT NULL DEFAULT 0 COMMENT 'Saldo actual utilizado',\n    fecha_corte INT NOT NULL COMMENT 'Día del mes del corte de tarjeta',\n    fecha_vencimiento DATE NOT NULL COMMENT 'Fecha de vencimiento de la tarjeta'\n) COMMENT='Tarjetas de crédito del usuario';",
     "preguntas": [
-      {"pregunta": "¿Cuántas cuentas bancarias hay registradas?", "sql": "SELECT COUNT(*) FROM cuentas", "nivel": "facil", "peso": 1},
-      {"pregunta": "¿Cuáles son los nombres de todas las categorías de gasto?", "sql": "SELECT nombre FROM categorias WHERE tipo = 'gasto'", "nivel": "facil", "peso": 1},
-      {"pregunta": "¿Cuál es el saldo total de todas las cuentas de ahorro?", "sql": "SELECT SUM(saldo) FROM cuentas WHERE tipo = 'ahorro'", "nivel": "facil", "peso": 1},
-      {"pregunta": "Lista las tarjetas ordenadas por límite de crédito de mayor a menor", "sql": "SELECT nombre, entidad, limite_credito FROM tarjetas ORDER BY limite_credito DESC", "nivel": "facil", "peso": 1},
-      {"pregunta": "¿Cuáles son los nombres de las metas de ahorro que aún no están completadas?", "sql": "SELECT nombre FROM metas_ahorro WHERE completada = FALSE", "nivel": "facil", "peso": 1},
-      {"pregunta": "¿Cuál es el monto máximo de presupuesto para la categoría de id 3 en enero de 2026?", "sql": "SELECT monto_maximo FROM presupuestos WHERE categoria_id = 3 AND mes = 1 AND anio = 2026", "nivel": "facil", "peso": 1},
-      {"pregunta": "¿Cuántas transacciones se realizaron en el mes de octubre de 2025?", "sql": "SELECT COUNT(*) FROM transacciones WHERE YEAR(fecha) = 2025 AND MONTH(fecha) = 10", "nivel": "facil", "peso": 1},
-
-      {"pregunta": "¿Cuál es el monto total gastado por cada categoría en el año 2025?", "sql": "SELECT c.nombre, SUM(ABS(t.monto)) AS total_gastado FROM transacciones t JOIN categorias c ON t.categoria_id = c.id WHERE c.tipo = 'gasto' AND YEAR(t.fecha) = 2025 GROUP BY c.nombre", "nivel": "media", "peso": 2},
-      {"pregunta": "¿Cuáles son las 3 cuentas con mayor saldo?", "sql": "SELECT nombre, saldo FROM cuentas ORDER BY saldo DESC LIMIT 3", "nivel": "media", "peso": 2},
-      {"pregunta": "¿Cuántas transacciones hizo cada cuenta en el último año?", "sql": "SELECT c.nombre, COUNT(t.id) AS num_transacciones FROM cuentas c LEFT JOIN transacciones t ON c.id = t.cuenta_id WHERE t.fecha >= DATE_SUB(CURDATE(), INTERVAL 1 YEAR) GROUP BY c.id, c.nombre", "nivel": "media", "peso": 2},
-      {"pregunta": "¿Qué entidades emisoras tienen tarjetas con saldo superior al 80% de su límite de crédito?", "sql": "SELECT entidad, nombre, saldo_actual, limite_credito FROM tarjetas WHERE saldo_actual > limite_credito * 0.8", "nivel": "media", "peso": 2},
-      {"pregunta": "¿Cuál es el promedio de transacciones mensuales por categoría durante 2025?", "sql": "SELECT c.nombre, COUNT(t.id) / 12.0 AS promedio_mensual FROM categorias c LEFT JOIN transacciones t ON c.id = t.categoria_id AND YEAR(t.fecha) = 2025 GROUP BY c.id, c.nombre", "nivel": "media", "peso": 2},
-      {"pregunta": "¿Cuáles son las metas de ahorro que tienen más del 50% completado?", "sql": "SELECT nombre, monto_objetivo, monto_actual, (monto_actual / monto_objetivo) * 100 AS porcentaje FROM metas_ahorro WHERE monto_actual > monto_objetivo * 0.5", "nivel": "media", "peso": 2},
-      {"pregunta": "¿Qué cuentas tuvieron transacciones de más de 1000 dólares?", "sql": "SELECT DISTINCT c.nombre, c.tipo FROM cuentas c JOIN transacciones t ON c.id = t.cuenta_id WHERE ABS(t.monto) > 1000", "nivel": "media", "peso": 2},
-
-      {"pregunta": "¿Cuál es la categoría que más dinero consumió respecto a su presupuesto en 2025?", "sql": "WITH gasto_categoria AS (SELECT categoria_id, SUM(ABS(monto)) AS total_gasto FROM transacciones WHERE YEAR(fecha) = 2025 AND categoria_id IN (SELECT id FROM categorias WHERE tipo = 'gasto') GROUP BY categoria_id), presupuesto_categoria AS (SELECT categoria_id, SUM(monto_maximo) AS total_presupuesto FROM presupuestos WHERE anio = 2025 GROUP BY categoria_id) SELECT c.nombre, g.total_gasto, p.total_presupuesto, (g.total_gasto / p.total_presupuesto) * 100 AS porcentaje_uso FROM gasto_categoria g JOIN presupuesto_categoria p ON g.categoria_id = p.categoria_id JOIN categorias c ON c.id = g.categoria_id ORDER BY porcentaje_uso DESC LIMIT 1", "nivel": "dificil", "peso": 3},
-      {"pregunta": "¿Cuál fue el mes con más transacciones de gastos en 2025 y cuántas fueron?", "sql": "SELECT MONTH(fecha) AS mes, COUNT(*) AS num_transacciones FROM transacciones WHERE YEAR(fecha) = 2025 AND categoria_id IN (SELECT id FROM categorias WHERE tipo = 'gasto') GROUP BY MONTH(fecha) ORDER BY num_transacciones DESC LIMIT 1", "nivel": "dificil", "peso": 3},
-      {"pregunta": "¿Cuáles son las cuentas cuyo saldo promedio mensual de transacciones (últimos 6 meses) supera los 500 dólares?", "sql": "SELECT c.nombre, AVG(total_mes) AS promedio_mensual FROM (SELECT cuenta_id, MONTH(fecha) AS mes, SUM(ABS(monto)) AS total_mes FROM transacciones WHERE fecha >= DATE_SUB(CURDATE(), INTERVAL 6 MONTH) GROUP BY cuenta_id, MONTH(fecha)) sub JOIN cuentas c ON sub.cuenta_id = c.id GROUP BY c.id, c.nombre HAVING promedio_mensual > 500", "nivel": "dificil", "peso": 3},
-      {"pregunta": "¿Cuáles son los diferentes tipos de cuenta que existen?", "sql": "SELECT DISTINCT tipo FROM cuentas", "nivel": "facil", "peso": 1},
-      {"pregunta": "¿Cuál es la suma total de saldo de todas las cuentas?", "sql": "SELECT SUM(saldo) AS saldo_total FROM cuentas", "nivel": "facil", "peso": 1},
-      {"pregunta": "¿Cuáles categorías tienen más de 5 transacciones registradas?", "sql": "SELECT c.nombre, COUNT(t.id) AS num_transacciones FROM categorias c JOIN transacciones t ON c.id = t.categoria_id GROUP BY c.id, c.nombre HAVING num_transacciones > 5", "nivel": "media", "peso": 2},
-      {"pregunta": "¿Cuál es la transacción más reciente de cada cuenta?", "sql": "SELECT t.cuenta_id, c.nombre, t.fecha, t.monto FROM transacciones t JOIN cuentas c ON t.cuenta_id = c.id WHERE t.fecha = (SELECT MAX(fecha) FROM transacciones WHERE cuenta_id = t.cuenta_id)", "nivel": "dificil", "peso": 3}
+      {
+        "pregunta": "¿Cuántas cuentas bancarias hay registradas?",
+        "sql": "SELECT COUNT(*) FROM cuentas",
+        "nivel": "facil",
+        "peso": 1,
+        "valida": true
+      },
+      {
+        "pregunta": "¿Cuáles son los nombres de todas las categorías de gasto?",
+        "sql": "SELECT nombre FROM categorias WHERE tipo = 'gasto'",
+        "nivel": "facil",
+        "peso": 1,
+        "valida": true
+      },
+      {
+        "pregunta": "¿Cuál es el saldo total de todas las cuentas de ahorro?",
+        "sql": "SELECT SUM(saldo) FROM cuentas WHERE tipo = 'ahorro'",
+        "nivel": "facil",
+        "peso": 1,
+        "valida": true
+      },
+      {
+        "pregunta": "Lista las tarjetas ordenadas por límite de crédito de mayor a menor",
+        "sql": "SELECT nombre, entidad, limite_credito FROM tarjetas ORDER BY limite_credito DESC",
+        "nivel": "facil",
+        "peso": 1,
+        "valida": true
+      },
+      {
+        "pregunta": "¿Cuáles son los nombres de las metas de ahorro que aún no están completadas?",
+        "sql": "SELECT nombre FROM metas_ahorro WHERE completada = FALSE",
+        "nivel": "facil",
+        "peso": 1,
+        "valida": true
+      },
+      {
+        "pregunta": "¿Cuál es el monto máximo de presupuesto para la categoría de id 3 en enero de 2026?",
+        "sql": "SELECT monto_maximo FROM presupuestos WHERE categoria_id = 3 AND mes = 1 AND anio = 2026",
+        "nivel": "facil",
+        "peso": 1,
+        "valida": true
+      },
+      {
+        "pregunta": "¿Cuántas transacciones se realizaron en el mes de octubre de 2025?",
+        "sql": "SELECT COUNT(*) FROM transacciones WHERE YEAR(fecha) = 2025 AND MONTH(fecha) = 10",
+        "nivel": "facil",
+        "peso": 1,
+        "valida": true
+      },
+      {
+        "pregunta": "¿Cuál es el monto total gastado por cada categoría en el año 2025?",
+        "sql": "SELECT c.nombre, SUM(ABS(t.monto)) AS total_gastado FROM transacciones t JOIN categorias c ON t.categoria_id = c.id WHERE c.tipo = 'gasto' AND YEAR(t.fecha) = 2025 GROUP BY c.nombre",
+        "nivel": "media",
+        "peso": 2,
+        "valida": true
+      },
+      {
+        "pregunta": "¿Cuáles son las 3 cuentas con mayor saldo?",
+        "sql": "SELECT nombre, saldo FROM cuentas ORDER BY saldo DESC LIMIT 3",
+        "nivel": "media",
+        "peso": 2,
+        "valida": true
+      },
+      {
+        "pregunta": "¿Cuántas transacciones hizo cada cuenta en el último año?",
+        "sql": "SELECT c.nombre, COUNT(t.id) AS num_transacciones FROM cuentas c LEFT JOIN transacciones t ON c.id = t.cuenta_id WHERE t.fecha >= DATE_SUB(CURDATE(), INTERVAL 1 YEAR) GROUP BY c.id, c.nombre",
+        "nivel": "media",
+        "peso": 2,
+        "valida": true
+      },
+      {
+        "pregunta": "¿Qué entidades emisoras tienen tarjetas con saldo superior al 80% de su límite de crédito?",
+        "sql": "SELECT entidad, nombre, saldo_actual, limite_credito FROM tarjetas WHERE saldo_actual > limite_credito * 0.8",
+        "nivel": "media",
+        "peso": 2,
+        "valida": true
+      },
+      {
+        "pregunta": "¿Cuál es el promedio de transacciones mensuales por categoría durante 2025?",
+        "sql": "SELECT c.nombre, COUNT(t.id) / 12.0 AS promedio_mensual FROM categorias c LEFT JOIN transacciones t ON c.id = t.categoria_id AND YEAR(t.fecha) = 2025 GROUP BY c.id, c.nombre",
+        "nivel": "media",
+        "peso": 2,
+        "valida": true
+      },
+      {
+        "pregunta": "¿Cuáles son las metas de ahorro que tienen más del 50% completado?",
+        "sql": "SELECT nombre, monto_objetivo, monto_actual, (monto_actual / monto_objetivo) * 100 AS porcentaje FROM metas_ahorro WHERE monto_actual > monto_objetivo * 0.5",
+        "nivel": "media",
+        "peso": 2,
+        "valida": true
+      },
+      {
+        "pregunta": "¿Qué cuentas tuvieron transacciones de más de 1000 dólares?",
+        "sql": "SELECT DISTINCT c.nombre, c.tipo FROM cuentas c JOIN transacciones t ON c.id = t.cuenta_id WHERE ABS(t.monto) > 1000",
+        "nivel": "media",
+        "peso": 2,
+        "valida": true
+      },
+      {
+        "pregunta": "¿Cuál es la categoría que más dinero consumió respecto a su presupuesto en 2025?",
+        "sql": "WITH gasto_categoria AS (SELECT categoria_id, SUM(ABS(monto)) AS total_gasto FROM transacciones WHERE YEAR(fecha) = 2025 AND categoria_id IN (SELECT id FROM categorias WHERE tipo = 'gasto') GROUP BY categoria_id), presupuesto_categoria AS (SELECT categoria_id, SUM(monto_maximo) AS total_presupuesto FROM presupuestos WHERE anio = 2025 GROUP BY categoria_id) SELECT c.nombre, g.total_gasto, p.total_presupuesto, (g.total_gasto / p.total_presupuesto) * 100 AS porcentaje_uso FROM gasto_categoria g JOIN presupuesto_categoria p ON g.categoria_id = p.categoria_id JOIN categorias c ON c.id = g.categoria_id ORDER BY porcentaje_uso DESC LIMIT 1",
+        "nivel": "dificil",
+        "peso": 3,
+        "valida": true
+      },
+      {
+        "pregunta": "¿Cuál fue el mes con más transacciones de gastos en 2025 y cuántas fueron?",
+        "sql": "SELECT MONTH(fecha) AS mes, COUNT(*) AS num_transacciones FROM transacciones WHERE YEAR(fecha) = 2025 AND categoria_id IN (SELECT id FROM categorias WHERE tipo = 'gasto') GROUP BY MONTH(fecha) ORDER BY num_transacciones DESC LIMIT 1",
+        "nivel": "dificil",
+        "peso": 3,
+        "valida": true
+      },
+      {
+        "pregunta": "¿Cuáles son las cuentas cuyo saldo promedio mensual de transacciones (últimos 6 meses) supera los 500 dólares?",
+        "sql": "SELECT c.nombre, AVG(total_mes) AS promedio_mensual FROM (SELECT cuenta_id, MONTH(fecha) AS mes, SUM(ABS(monto)) AS total_mes FROM transacciones WHERE fecha >= DATE_SUB(CURDATE(), INTERVAL 6 MONTH) GROUP BY cuenta_id, MONTH(fecha)) sub JOIN cuentas c ON sub.cuenta_id = c.id GROUP BY c.id, c.nombre HAVING promedio_mensual > 500",
+        "nivel": "dificil",
+        "peso": 3,
+        "valida": true
+      },
+      {
+        "pregunta": "¿Cuáles son los diferentes tipos de cuenta que existen?",
+        "sql": "SELECT DISTINCT tipo FROM cuentas",
+        "nivel": "facil",
+        "peso": 1,
+        "valida": true
+      },
+      {
+        "pregunta": "¿Cuál es la suma total de saldo de todas las cuentas?",
+        "sql": "SELECT SUM(saldo) AS saldo_total FROM cuentas",
+        "nivel": "facil",
+        "peso": 1,
+        "valida": true
+      },
+      {
+        "pregunta": "¿Cuáles categorías tienen más de 5 transacciones registradas?",
+        "sql": "SELECT c.nombre, COUNT(t.id) AS num_transacciones FROM categorias c JOIN transacciones t ON c.id = t.categoria_id GROUP BY c.id, c.nombre HAVING num_transacciones > 5",
+        "nivel": "media",
+        "peso": 2,
+        "valida": true
+      },
+      {
+        "pregunta": "¿Cuál es la transacción más reciente de cada cuenta?",
+        "sql": "SELECT t.cuenta_id, c.nombre, t.fecha, t.monto FROM transacciones t JOIN cuentas c ON t.cuenta_id = c.id WHERE t.fecha = (SELECT MAX(fecha) FROM transacciones WHERE cuenta_id = t.cuenta_id)",
+        "nivel": "dificil",
+        "peso": 3,
+        "valida": true
+      }
     ]
   },
   {
     "nombre": "logistica",
     "esquema": "CREATE TABLE centros_distribucion (\n    id INT AUTO_INCREMENT PRIMARY KEY COMMENT 'Identificador único del centro de distribución',\n    nombre VARCHAR(150) NOT NULL COMMENT 'Nombre del centro de distribución',\n    ciudad VARCHAR(100) NOT NULL COMMENT 'Ciudad donde se ubica el centro',\n    direccion VARCHAR(300) NOT NULL COMMENT 'Dirección completa del centro',\n    capacidad INT COMMENT 'Capacidad máxima de almacenamiento en unidades'\n) COMMENT='Centros de distribución de la empresa logística';\n\nCREATE TABLE vehiculos (\n    id INT AUTO_INCREMENT PRIMARY KEY COMMENT 'Identificador único del vehículo',\n    placa VARCHAR(20) NOT NULL UNIQUE COMMENT 'Placa del vehículo',\n    tipo VARCHAR(30) NOT NULL COMMENT 'Tipo de vehículo: camioneta, camión, furgoneta, moto',\n    capacidad_kg DECIMAL(10,2) NOT NULL COMMENT 'Capacidad de carga en kilogramos',\n    estado VARCHAR(20) NOT NULL DEFAULT 'disponible' COMMENT 'Estado: disponible, en_ruta, mantenimiento',\n    centro_id INT NOT NULL COMMENT 'Centro de distribución base del vehículo',\n    FOREIGN KEY (centro_id) REFERENCES centros_distribucion(id)\n) COMMENT='Vehículos de la flota de la empresa';\n\nCREATE TABLE repartidores (\n    id INT AUTO_INCREMENT PRIMARY KEY COMMENT 'Identificador único del repartidor',\n    nombre VARCHAR(150) NOT NULL COMMENT 'Nombre completo del repartidor',\n    telefono VARCHAR(20) COMMENT 'Teléfono del repartidor',\n    licencia VARCHAR(30) COMMENT 'Número de licencia de conducir',\n    fecha_contratacion DATE NOT NULL COMMENT 'Fecha en que fue contratado',\n    centro_id INT NOT NULL COMMENT 'Centro de distribución asignado',\n    FOREIGN KEY (centro_id) REFERENCES centros_distribucion(id)\n) COMMENT='Repartidores de la empresa logística';\n\nCREATE TABLE rutas (\n    id INT AUTO_INCREMENT PRIMARY KEY COMMENT 'Identificador único de la ruta',\n    nombre VARCHAR(150) NOT NULL COMMENT 'Nombre de la ruta',\n    origen_id INT NOT NULL COMMENT 'Centro de distribución de origen',\n    destino_ciudad VARCHAR(100) NOT NULL COMMENT 'Ciudad de destino de la ruta',\n    distancia_km DECIMAL(10,2) NOT NULL COMMENT 'Distancia de la ruta en kilómetros',\n    tiempo_estimado_horas DECIMAL(5,2) NOT NULL COMMENT 'Tiempo estimado de la ruta en horas',\n    FOREIGN KEY (origen_id) REFERENCES centros_distribucion(id)\n) COMMENT='Rutas de distribución disponibles';\n\nCREATE TABLE paquetes (\n    id INT AUTO_INCREMENT PRIMARY KEY COMMENT 'Identificador único del paquete',\n    remitente VARCHAR(150) NOT NULL COMMENT 'Nombre del remitente del paquete',\n    destinatario VARCHAR(150) NOT NULL COMMENT 'Nombre del destinatario del paquete',\n    peso_kg DECIMAL(8,2) NOT NULL COMMENT 'Peso del paquete en kilogramos',\n    descripcion TEXT COMMENT 'Descripción del contenido del paquete',\n    prioridad VARCHAR(10) NOT NULL DEFAULT 'normal' COMMENT 'Prioridad: baja, normal, alta, urgente',\n    estado VARCHAR(20) NOT NULL DEFAULT 'pendiente' COMMENT 'Estado: pendiente, en_transito, entregado, devuelto',\n    fecha_envio DATE NOT NULL COMMENT 'Fecha en que se envió el paquete',\n    ruta_id INT COMMENT 'Ruta asignada al paquete',\n    FOREIGN KEY (ruta_id) REFERENCES rutas(id)\n) COMMENT='Paquetes enviados por la empresa';\n\nCREATE TABLE entregas (\n    id INT AUTO_INCREMENT PRIMARY KEY COMMENT 'Identificador único de la entrega',\n    paquete_id INT NOT NULL COMMENT 'Paquete entregado',\n    repartidor_id INT NOT NULL COMMENT 'Repartidor que realizó la entrega',\n    vehiculo_id INT NOT NULL COMMENT 'Vehículo utilizado para la entrega',\n    fecha_entrega DATETIME COMMENT 'Fecha y hora en que se entregó el paquete',\n    direccion_entrega VARCHAR(300) NOT NULL COMMENT 'Dirección donde se entregó el paquete',\n    firmado_por VARCHAR(150) COMMENT 'Nombre de quien recibió el paquete',\n    FOREIGN KEY (paquete_id) REFERENCES paquetes(id),\n    FOREIGN KEY (repartidor_id) REFERENCES repartidores(id),\n    FOREIGN KEY (vehiculo_id) REFERENCES vehiculos(id)\n) COMMENT='Entregas realizadas de paquetes';",
     "preguntas": [
-      {"pregunta": "¿Cuántos centros de distribución hay?", "sql": "SELECT COUNT(*) FROM centros_distribucion", "nivel": "facil", "peso": 1},
-      {"pregunta": "¿Cuáles son los nombres de todos los repartidores?", "sql": "SELECT nombre FROM repartidores", "nivel": "facil", "peso": 1},
-      {"pregunta": "¿Cuántos vehículos están en mantenimiento?", "sql": "SELECT COUNT(*) FROM vehiculos WHERE estado = 'mantenimiento'", "nivel": "facil", "peso": 1},
-      {"pregunta": "¿Cuáles son las placas de los vehículos tipo camioneta?", "sql": "SELECT placa FROM vehiculos WHERE tipo = 'camioneta'", "nivel": "facil", "peso": 1},
-      {"pregunta": "¿Cuántos paquetes tienen prioridad urgente?", "sql": "SELECT COUNT(*) FROM paquetes WHERE prioridad = 'urgente'", "nivel": "facil", "peso": 1},
-      {"pregunta": "Lista todas las rutas ordenadas por distancia de mayor a menor", "sql": "SELECT nombre, distancia_km FROM rutas ORDER BY distancia_km DESC", "nivel": "facil", "peso": 1},
-      {"pregunta": "¿Cuál es el peso promedio de los paquetes enviados?", "sql": "SELECT AVG(peso_kg) FROM paquetes", "nivel": "facil", "peso": 1},
-
-      {"pregunta": "¿Cuántos paquetes tiene cada ruta asignada?", "sql": "SELECT r.nombre, COUNT(p.id) AS num_paquetes FROM rutas r LEFT JOIN paquetes p ON r.id = p.ruta_id GROUP BY r.id, r.nombre", "nivel": "media", "peso": 2},
-      {"pregunta": "¿Cuáles son los 5 repartidores que más entregas han realizado?", "sql": "SELECT rep.nombre, COUNT(e.id) AS num_entregas FROM repartidores rep JOIN entregas e ON rep.id = e.repartidor_id GROUP BY rep.id, rep.nombre ORDER BY num_entregas DESC LIMIT 5", "nivel": "media", "peso": 2},
-      {"pregunta": "¿Qué vehículos tienen capacidad superior al promedio de la flota?", "sql": "SELECT placa, tipo, capacidad_kg FROM vehiculos WHERE capacidad_kg > (SELECT AVG(capacidad_kg) FROM vehiculos)", "nivel": "media", "peso": 2},
-      {"pregunta": "¿Cuántos paquetes urgentes están pendientes de entrega?", "sql": "SELECT COUNT(*) FROM paquetes WHERE prioridad = 'urgente' AND estado = 'pendiente'", "nivel": "media", "peso": 2},
-      {"pregunta": "¿Cuáles centros de distribución tienen más de 10 vehículos asignados?", "sql": "SELECT c.nombre, COUNT(v.id) AS num_vehiculos FROM centros_distribucion c JOIN vehiculos v ON c.id = v.centro_id GROUP BY c.id, c.nombre HAVING num_vehiculos > 10", "nivel": "media", "peso": 2},
-      {"pregunta": "¿Cuál es el peso total de paquetes enviados por cada mes en 2025?", "sql": "SELECT MONTH(fecha_envio) AS mes, SUM(peso_kg) AS peso_total FROM paquetes WHERE YEAR(fecha_envio) = 2025 GROUP BY MONTH(fecha_envio) ORDER BY mes", "nivel": "media", "peso": 2},
-
-      {"pregunta": "¿Cuál es el repartidor con mejor tiempo promedio de entrega (diferencia entre fecha_envio y fecha_entrega) en 2025?", "sql": "SELECT r.nombre, AVG(TIMESTAMPDIFF(HOUR, p.fecha_envio, e.fecha_entrega)) AS promedio_horas FROM repartidores r JOIN entregas e ON r.id = e.repartidor_id JOIN paquetes p ON e.paquete_id = p.id WHERE YEAR(e.fecha_entrega) = 2025 GROUP BY r.id, r.nombre ORDER BY promedio_horas ASC LIMIT 1", "nivel": "dificil", "peso": 3},
-      {"pregunta": "¿Cuáles rutas tienen paquetes con peso promedio superior al promedio general?", "sql": "WITH peso_promedio_general AS (SELECT AVG(peso_kg) AS promedio FROM paquetes), peso_por_ruta AS (SELECT ruta_id, AVG(peso_kg) AS promedio_ruta FROM paquetes WHERE ruta_id IS NOT NULL GROUP BY ruta_id) SELECT r.nombre, pr.promedio_ruta FROM peso_por_ruta pr JOIN rutas r ON pr.ruta_id = r.id CROSS JOIN peso_promedio_general WHERE pr.promedio_ruta > peso_promedio_general.promedio", "nivel": "dificil", "peso": 3},
-      {"pregunta": "¿Cuáles son los centros que tienen repartidores contratados hace más de 2 años y vehículos disponibles?", "sql": "SELECT DISTINCT c.nombre FROM centros_distribucion c JOIN repartidores r ON c.id = r.centro_id JOIN vehiculos v ON c.id = v.centro_id WHERE r.fecha_contratacion <= DATE_SUB(CURDATE(), INTERVAL 2 YEAR) AND v.estado = 'disponible'", "nivel": "dificil", "peso": 3},
-      {"pregunta": "¿Cuántos paquetes están en estado 'en_transito'?", "sql": "SELECT COUNT(*) FROM paquetes WHERE estado = 'en_transito'", "nivel": "facil", "peso": 1},
-      {"pregunta": "¿Cuál es la distancia promedio de todas las rutas?", "sql": "SELECT AVG(distancia_km) AS distancia_promedio FROM rutas", "nivel": "facil", "peso": 1},
-      {"pregunta": "¿Cuáles son los tipos de vehículo que tienen más de 5 unidades registradas?", "sql": "SELECT tipo, COUNT(*) AS cantidad FROM vehiculos GROUP BY tipo HAVING cantidad > 5", "nivel": "media", "peso": 2},
-      {"pregunta": "¿Cuál es el paquete más pesado entregado por cada repartidor?", "sql": "SELECT r.nombre, p.destinatario, MAX(p.peso_kg) AS peso_maximo FROM repartidores r JOIN entregas e ON r.id = e.repartidor_id JOIN paquetes p ON e.paquete_id = p.id GROUP BY r.id, r.nombre", "nivel": "dificil", "peso": 3}
+      {
+        "pregunta": "¿Cuántos centros de distribución hay?",
+        "sql": "SELECT COUNT(*) FROM centros_distribucion",
+        "nivel": "facil",
+        "peso": 1,
+        "valida": true
+      },
+      {
+        "pregunta": "¿Cuáles son los nombres de todos los repartidores?",
+        "sql": "SELECT nombre FROM repartidores",
+        "nivel": "facil",
+        "peso": 1,
+        "valida": true
+      },
+      {
+        "pregunta": "¿Cuántos vehículos están en mantenimiento?",
+        "sql": "SELECT COUNT(*) FROM vehiculos WHERE estado = 'mantenimiento'",
+        "nivel": "facil",
+        "peso": 1,
+        "valida": true
+      },
+      {
+        "pregunta": "¿Cuáles son las placas de los vehículos tipo camioneta?",
+        "sql": "SELECT placa FROM vehiculos WHERE tipo = 'camioneta'",
+        "nivel": "facil",
+        "peso": 1,
+        "valida": true
+      },
+      {
+        "pregunta": "¿Cuántos paquetes tienen prioridad urgente?",
+        "sql": "SELECT COUNT(*) FROM paquetes WHERE prioridad = 'urgente'",
+        "nivel": "facil",
+        "peso": 1,
+        "valida": true
+      },
+      {
+        "pregunta": "Lista todas las rutas ordenadas por distancia de mayor a menor",
+        "sql": "SELECT nombre, distancia_km FROM rutas ORDER BY distancia_km DESC",
+        "nivel": "facil",
+        "peso": 1,
+        "valida": true
+      },
+      {
+        "pregunta": "¿Cuál es el peso promedio de los paquetes enviados?",
+        "sql": "SELECT AVG(peso_kg) FROM paquetes",
+        "nivel": "facil",
+        "peso": 1,
+        "valida": true
+      },
+      {
+        "pregunta": "¿Cuántos paquetes tiene cada ruta asignada?",
+        "sql": "SELECT r.nombre, COUNT(p.id) AS num_paquetes FROM rutas r LEFT JOIN paquetes p ON r.id = p.ruta_id GROUP BY r.id, r.nombre",
+        "nivel": "media",
+        "peso": 2,
+        "valida": true
+      },
+      {
+        "pregunta": "¿Cuáles son los 5 repartidores que más entregas han realizado?",
+        "sql": "SELECT rep.nombre, COUNT(e.id) AS num_entregas FROM repartidores rep JOIN entregas e ON rep.id = e.repartidor_id GROUP BY rep.id, rep.nombre ORDER BY num_entregas DESC LIMIT 5",
+        "nivel": "media",
+        "peso": 2,
+        "valida": true
+      },
+      {
+        "pregunta": "¿Qué vehículos tienen capacidad superior al promedio de la flota?",
+        "sql": "SELECT placa, tipo, capacidad_kg FROM vehiculos WHERE capacidad_kg > (SELECT AVG(capacidad_kg) FROM vehiculos)",
+        "nivel": "media",
+        "peso": 2,
+        "valida": true
+      },
+      {
+        "pregunta": "¿Cuántos paquetes urgentes están pendientes de entrega?",
+        "sql": "SELECT COUNT(*) FROM paquetes WHERE prioridad = 'urgente' AND estado = 'pendiente'",
+        "nivel": "media",
+        "peso": 2,
+        "valida": true
+      },
+      {
+        "pregunta": "¿Cuáles centros de distribución tienen más de 10 vehículos asignados?",
+        "sql": "SELECT c.nombre, COUNT(v.id) AS num_vehiculos FROM centros_distribucion c JOIN vehiculos v ON c.id = v.centro_id GROUP BY c.id, c.nombre HAVING num_vehiculos > 10",
+        "nivel": "media",
+        "peso": 2,
+        "valida": true
+      },
+      {
+        "pregunta": "¿Cuál es el peso total de paquetes enviados por cada mes en 2025?",
+        "sql": "SELECT MONTH(fecha_envio) AS mes, SUM(peso_kg) AS peso_total FROM paquetes WHERE YEAR(fecha_envio) = 2025 GROUP BY MONTH(fecha_envio) ORDER BY mes",
+        "nivel": "media",
+        "peso": 2,
+        "valida": true
+      },
+      {
+        "pregunta": "¿Cuál es el repartidor con mejor tiempo promedio de entrega (diferencia entre fecha_envio y fecha_entrega) en 2025?",
+        "sql": "SELECT r.nombre, AVG(TIMESTAMPDIFF(HOUR, p.fecha_envio, e.fecha_entrega)) AS promedio_horas FROM repartidores r JOIN entregas e ON r.id = e.repartidor_id JOIN paquetes p ON e.paquete_id = p.id WHERE YEAR(e.fecha_entrega) = 2025 GROUP BY r.id, r.nombre ORDER BY promedio_horas ASC LIMIT 1",
+        "nivel": "dificil",
+        "peso": 3,
+        "valida": true
+      },
+      {
+        "pregunta": "¿Cuáles rutas tienen paquetes con peso promedio superior al promedio general?",
+        "sql": "WITH peso_promedio_general AS (SELECT AVG(peso_kg) AS promedio FROM paquetes), peso_por_ruta AS (SELECT ruta_id, AVG(peso_kg) AS promedio_ruta FROM paquetes WHERE ruta_id IS NOT NULL GROUP BY ruta_id) SELECT r.nombre, pr.promedio_ruta FROM peso_por_ruta pr JOIN rutas r ON pr.ruta_id = r.id CROSS JOIN peso_promedio_general WHERE pr.promedio_ruta > peso_promedio_general.promedio",
+        "nivel": "dificil",
+        "peso": 3,
+        "valida": true
+      },
+      {
+        "pregunta": "¿Cuáles son los centros que tienen repartidores contratados hace más de 2 años y vehículos disponibles?",
+        "sql": "SELECT DISTINCT c.nombre FROM centros_distribucion c JOIN repartidores r ON c.id = r.centro_id JOIN vehiculos v ON c.id = v.centro_id WHERE r.fecha_contratacion <= DATE_SUB(CURDATE(), INTERVAL 2 YEAR) AND v.estado = 'disponible'",
+        "nivel": "dificil",
+        "peso": 3,
+        "valida": true
+      },
+      {
+        "pregunta": "¿Cuántos paquetes están en estado 'en_transito'?",
+        "sql": "SELECT COUNT(*) FROM paquetes WHERE estado = 'en_transito'",
+        "nivel": "facil",
+        "peso": 1,
+        "valida": true
+      },
+      {
+        "pregunta": "¿Cuál es la distancia promedio de todas las rutas?",
+        "sql": "SELECT AVG(distancia_km) AS distancia_promedio FROM rutas",
+        "nivel": "facil",
+        "peso": 1,
+        "valida": true
+      },
+      {
+        "pregunta": "¿Cuáles son los tipos de vehículo que tienen más de 5 unidades registradas?",
+        "sql": "SELECT tipo, COUNT(*) AS cantidad FROM vehiculos GROUP BY tipo HAVING cantidad > 5",
+        "nivel": "media",
+        "peso": 2,
+        "valida": true
+      },
+      {
+        "pregunta": "¿Cuál es el paquete más pesado entregado por cada repartidor?",
+        "sql": "SELECT r.nombre, p.destinatario, p.peso_kg FROM repartidores r JOIN entregas e ON r.id = e.repartidor_id JOIN paquetes p ON e.paquete_id = p.id WHERE p.peso_kg = (SELECT MAX(p2.peso_kg) FROM paquetes p2 JOIN entregas e2 ON p2.id = e2.paquete_id WHERE e2.repartidor_id = r.id)",
+        "nivel": "dificil",
+        "peso": 3,
+        "valida": true,
+        "error": "1055 (42000): Expression #2 of SELECT list is not in GROUP BY clause and contains nonaggregated column 'text_to_sql_val.p.destinatario' which is not functionally dependent on columns in GROUP BY clause; this is incompatible with sql_mode=only_full_group_by"
+      }
     ]
   }
 ]

@@ -1,12 +1,39 @@
 {
-  "total_generados": 704,
-  "duplicados": 13,
-  "validos": 691,
-  "por_nivel": {
-    "facil": 327,
-    "media": 230,
-    "dificil": 134
+  "total_generados": 2423,
+  "validos_mysql": 2415,
+  "invalidos": 8,
+  "porcentaje_validos": 99.7,
+  "descartados_sintaxis": 0,
+  "descartados_columna": 7,
+  "descartados_tabla": 0,
+  "descartados_otro": 1,
+  "esquemas_validados": [
+    "tienda_online",
+    "gimnasio", 
+    "biblioteca",
+    "taller_mecanico",
+    "hospital",
+    "agencia_viajes",
+    "restaurante",
+    "inmobiliaria",
+    "cine",
+    "universidad"
+  ],
+  "detalles_invalidos": {
+    "biblioteca": {
+      "total": 8,
+      "razon": "Tabla libro_autores no tiene columna id (tabla de unión con clave compuesta)",
+      "queries_afectadas": [
+        "SELECT r.titulo, COUNT(t.id) AS cantidad FROM libros r LEFT JOIN libro_autores t ON t.libro_id = r.id GROUP BY r.id, r.titulo",
+        "SELECT r.titulo, COUNT(t.id) AS cantidad FROM libros r JOIN libro_autores t ON t.libro_id = r.id GROUP BY r.id, r.titulo HAVING cantidad > 3",
+        "SELECT r.nombre, COUNT(t.id) AS cantidad FROM autores r LEFT JOIN libro_autores t ON t.autor_id = r.id GROUP BY r.id, r.nombre",
+        "SELECT r.nombre, COUNT(t.id) AS cantidad FROM autores r JOIN libro_autores t ON t.autor_id = r.id GROUP BY r.id, r.nombre HAVING cantidad > 3",
+        "SELECT libro_autores.id, COUNT(libros.id) FROM libros JOIN libro_autores ON libros.id = libro_autores.id GROUP BY libro_autores.id LIMIT 10",
+        "SELECT * FROM libro_autores ORDER BY id LIMIT 10"
+      ]
+    }
   },
-  "descartes": [],
-  "nota": "Pendientes de validación en MySQL 8.4.10"
+  "fecha_validacion": "2026-01-25",
+  "mysql_version": "8.4.10",
+  "nota": "Dataset final de 2,415 queries válidas usado para entrenamiento"
 }

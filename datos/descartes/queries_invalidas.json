@@ -1,0 +1,66 @@
+[
+  {
+    "pregunta": "¿Cuántos libro autores tiene cada libros?",
+    "sql": "SELECT r.titulo, COUNT(t.id) AS cantidad FROM libros r LEFT JOIN libro_autores t ON t.libro_id = r.id GROUP BY r.id, r.titulo",
+    "nivel": "media",
+    "esquema": "biblioteca",
+    "peso": 2,
+    "error": "1054 (42S22): Unknown column 't.id' in 'field list'"
+  },
+  {
+    "pregunta": "¿Qué libros tienen más de 3 libro autores?",
+    "sql": "SELECT r.titulo, COUNT(t.id) AS cantidad FROM libros r JOIN libro_autores t ON t.libro_id = r.id GROUP BY r.id, r.titulo HAVING cantidad > 3",
+    "nivel": "media",
+    "esquema": "biblioteca",
+    "peso": 2,
+    "error": "1054 (42S22): Unknown column 't.id' in 'field list'"
+  },
+  {
+    "pregunta": "¿Cuántos libro autores tiene cada autores?",
+    "sql": "SELECT r.nombre, COUNT(t.id) AS cantidad FROM autores r LEFT JOIN libro_autores t ON t.autor_id = r.id GROUP BY r.id, r.nombre",
+    "nivel": "media",
+    "esquema": "biblioteca",
+    "peso": 2,
+    "error": "1054 (42S22): Unknown column 't.id' in 'field list'"
+  },
+  {
+    "pregunta": "¿Qué autores tienen más de 3 libro autores?",
+    "sql": "SELECT r.nombre, COUNT(t.id) AS cantidad FROM autores r JOIN libro_autores t ON t.autor_id = r.id GROUP BY r.id, r.nombre HAVING cantidad > 3",
+    "nivel": "media",
+    "esquema": "biblioteca",
+    "peso": 2,
+    "error": "1054 (42S22): Unknown column 't.id' in 'field list'"
+  },
+  {
+    "pregunta": "¿Cuántos libros hay por cada libro_autores?",
+    "sql": "SELECT libro_autores.id, COUNT(libros.id) FROM libros JOIN libro_autores ON libros.id = libro_autores.id GROUP BY libro_autores.id LIMIT 10",
+    "nivel": "media",
+    "esquema": "biblioteca",
+    "peso": 2,
+    "error": "1054 (42S22): Unknown column 'libro_autores.id' in 'field list'"
+  },
+  {
+    "pregunta": "Muestra los 10 primeros registros de libro_autores ordenados por id",
+    "sql": "SELECT * FROM libro_autores ORDER BY id LIMIT 10",
+    "nivel": "facil",
+    "esquema": "biblioteca",
+    "peso": 1,
+    "error": "1054 (42S22): Unknown column 'id' in 'order clause'"
+  },
+  {
+    "pregunta": "¿Cuántos libro_autores hay por cada miembros?",
+    "sql": "SELECT miembros.id, COUNT(libro_autores.id) FROM libro_autores JOIN miembros ON libro_autores.id = miembros.id GROUP BY miembros.id LIMIT 10",
+    "nivel": "media",
+    "esquema": "biblioteca",
+    "peso": 2,
+    "error": "1054 (42S22): Unknown column 'libro_autores.id' in 'field list'"
+  },
+  {
+    "pregunta": "¿Cuántos prestamos hay por cada libro_autores?",
+    "sql": "SELECT libro_autores.id, COUNT(prestamos.id) FROM prestamos JOIN libro_autores ON prestamos.id = libro_autores.id GROUP BY libro_autores.id LIMIT 10",
+    "nivel": "media",
+    "esquema": "biblioteca",
+    "peso": 2,
+    "error": "1054 (42S22): Unknown column 'libro_autores.id' in 'field list'"
+  }
+]
