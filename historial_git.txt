@@ -1,3 +1,35 @@
+commit 9ec1759c20c61486df7de6ff0117e435dccccc2d
+Author: Hansel López <halm29799@gmail.com>
+Date:   2026-10-25 23:40:04 -0600
+
+    Completar scripts de evaluación y documentación final
+    
+    - Agregar evaluar_baseline.py: evaluación del modelo sin adapter
+    - Agregar experimento_inferencia.py: experimento de self-correction con hasta 3 intentos
+    - Agregar validar_validacion.py: validación de dataset de validación en MySQL
+    - Actualizar validar_dataset.py: corrección de conexión a MySQL 8.4.10
+    - Actualizar README.md: estructura completa del proyecto e instrucciones
+    - Actualizar BITACORA.md: 12 entradas detalladas del desarrollo
+    - Actualizar CONTRIBUCIONES.md: trabajo individual con distribución de actividades
+    - Agregar Entrenamiento_Completo.ipynb: notebook completo para Google Colab
+    - Actualizar datos de validación y descartes tras validación MySQL
+
+ BITACORA.md                                    |   271 +-
+ CONTRIBUCIONES.md                              |   218 +-
+ Entrenamiento_Completo.ipynb                   |   744 ++
+ README.md                                      |   157 +-
+ datos/descartes/queries_invalidas.json         |    66 +
+ datos/descartes/reporte_descartes.json         |    47 +-
+ datos/entrenamiento/hf_dataset/train.json      | 14840 +++++++++++------------
+ datos/entrenamiento/hf_dataset/validation.json |  1598 ++-
+ datos/validacion/validacion.json               |   335 +-
+ evaluar_baseline.py                            |   256 +
+ experimento_inferencia.py                      |   370 +
+ historial_git.txt                              |     9 +
+ validar_dataset.py                             |   223 +-
+ validar_validacion.py                          |   151 +
+ 14 files changed, 10775 insertions(+), 8510 deletions(-)
+
 commit eecf57e8799bc33f921e953fa00fc29b03b13cfc
 Author: Hansel López <halm29799@gmail.com>
 Date:   2026-10-25 23:25:45 -0600
