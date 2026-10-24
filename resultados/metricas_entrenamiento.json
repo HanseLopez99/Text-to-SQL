@@ -1,0 +1,17 @@
+{
+  "tiempo_horas": 28.77360052810775,
+  "loss_final": 0.08557660479609873,
+  "parametros_entrenables": 2179072,
+  "parametros_totales": 1545893376,
+  "device": "mps",
+  "modelo_base": "Qwen/Qwen2.5-Coder-1.5B-Instruct",
+  "config": {
+    "r": 16,
+    "alpha": 32,
+    "epochs": 3,
+    "batch_size": 1,
+    "gradient_accumulation": 8,
+    "learning_rate": 0.0002,
+    "max_seq_length": 512
+  }
+}
