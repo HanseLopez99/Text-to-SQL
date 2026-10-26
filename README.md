@@ -13,19 +13,17 @@ Sistema de Text-to-SQL basado en fine-tuning de LLM con LoRA que genera consulta
 **Validación**: 41 preguntas sobre 2 esquemas no vistos en entrenamiento
 
 ## Estado del Proyecto
-✅ **Completado localmente** (al 25 de octubre de 2026):
+✅ **Completado localmente** (al 25 de octubre de 2026, 11:57 PM):
 - Dataset de entrenamiento: 2,415 pares válidos
 - Dataset de validación: 41 preguntas (100% válidas)
 - 12 esquemas SQL (10 entrenamiento + 2 validación)
-- Scripts de evaluación y análisis
-- Notebook de entrenamiento completo para Colab
-- Documentación completa
-
-⏳ **Pendiente**:
-- Entrenamiento del modelo con LoRA en Google Colab
-- Evaluación del baseline (modelo sin adapter)
-- Evaluación del modelo fine-tuneado
-- Generación de presentación
+- Entrenamiento LoRA completado en MacBook Air M3 (24 GB RAM)
+- Evaluación baseline y modelo fine-tuned completadas
+- EX Score: 0.1806 (baseline) → **0.7222** (LoRA), mejora de **+0.5417**
+- 30 de 41 preguntas respondidas correctamente en esquemas no vistos
+- Análisis de errores y experimento de inferencia completados
+- Presentación final incluida: `Presentacion_Text_to_SQL_LoRA.pptx`
+- Documentación y resultados finales completos
 
 ## Instalación
 
@@ -185,16 +183,16 @@ Text-to-SQL/
 - **GPU**: T4 o superior (para entrenamiento)
 - **VRAM**: ~16GB mínimo
 
-## Métricas Esperadas
-- **Baseline** (sin adapter): ~25-35% exactitud
-- **Fine-tuned** (con LoRA): ~65-75% exactitud
-- **Mejora esperada**: +30-40 puntos porcentuales
+## Resultados Finales
+- **Baseline** (sin adapter): EX Score de **0.1806**
+- **Fine-tuned con LoRA**: EX Score de **0.7222**
+- **Mejora absoluta**: **+0.5417** puntos de EX Score
+- **Exactitud por ejecución**: 30 de 41 preguntas correctas
+- **Configuración LoRA**: rank 16, alpha 32; 2,179,072 parámetros entrenables (0.14% del modelo)
+- **Tiempo de entrenamiento**: 28.77 horas en MacBook Air M3
 
 ## Próximos Pasos
-1. Ejecutar `Entrenamiento_Completo.ipynb` en Google Colab
-2. Entrenar modelo con LoRA (~2-3 horas en T4)
-3. Evaluar baseline con `evaluar_baseline.py`
-4. Evaluar modelo fine-tuneado con `evaluar.py`
-5. Ejecutar experimento de inferencia con `experimento_inferencia.py`
-6. Generar presentación con resultados
+1. Comparar la configuración actual con LoRA rank 32.
+2. Ampliar el experimento de inferencia con self-correction.
+3. Evaluar la generalización con esquemas y datasets más grandes.
 
