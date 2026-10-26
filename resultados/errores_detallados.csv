@@ -1,0 +1,153 @@
+modelo,esquema,pregunta,nivel,peso,sql_referencia,sql_generada,correcta,error_ref,error_gen,categoria
+finetuned,finanzas_personales,Lista las tarjetas ordenadas por límite de crédito de mayor a menor,facil,1,"SELECT nombre, entidad, limite_credito FROM tarjetas ORDER BY limite_credito DESC","SELECT t.*, CASE WHEN r.fecha_limite < NOW() THEN 'Vencida' ELSE 'Por vencer' END AS estado FROM metas_ahorro t LEFT JOIN tarjetas r ON t.id = r.id;",False,,1054 (42S22): Unknown column 'r.fecha_limite' in 'field list',join_incorrecto
+finetuned,finanzas_personales,¿Cuál es el monto máximo de presupuesto para la categoría de id 3 en enero de 2026?,facil,1,SELECT monto_maximo FROM presupuestos WHERE categoria_id = 3 AND mes = 1 AND anio = 2026,SELECT MAX(monto_maximo) FROM presupuestos WHERE categoria_id = 3 AND YEAR(fecha) = 2026 AND MONTH(fecha) = 1 LIMIT 1,False,,1054 (42S22): Unknown column 'fecha' in 'where clause',resultado_distinto
+finetuned,finanzas_personales,¿Cuál es el promedio de transacciones mensuales por categoría durante 2025?,media,2,"SELECT c.nombre, COUNT(t.id) / 12.0 AS promedio_mensual FROM categorias c LEFT JOIN transacciones t ON c.id = t.categoria_id AND YEAR(t.fecha) = 2025 GROUP BY c.id, c.nombre","SELECT r.nombre, AVG(t.monto) AS promedio FROM categorias r JOIN presupuestos t ON t.categoria_id = r.id WHERE YEAR(t.anio) = 2025 GROUP BY r.id, r.nombre ORDER BY promedio DESC LIMIT 10;",False,,1054 (42S22): Unknown column 't.monto' in 'field list',resultado_distinto
+finetuned,finanzas_personales,¿Cuál es la categoría que más dinero consumió respecto a su presupuesto en 2025?,dificil,3,"WITH gasto_categoria AS (SELECT categoria_id, SUM(ABS(monto)) AS total_gasto FROM transacciones WHERE YEAR(fecha) = 2025 AND categoria_id IN (SELECT id FROM categorias WHERE tipo = 'gasto') GROUP BY categoria_id), presupuesto_categoria AS (SELECT categoria_id, SUM(monto_maximo) AS total_presupuesto FROM presupuestos WHERE anio = 2025 GROUP BY categoria_id) SELECT c.nombre, g.total_gasto, p.total_presupuesto, (g.total_gasto / p.total_presupuesto) * 100 AS porcentaje_uso FROM gasto_categoria g JOIN presupuesto_categoria p ON g.categoria_id = p.categoria_id JOIN categorias c ON c.id = g.categoria_id ORDER BY porcentaje_uso DESC LIMIT 1","SELECT t.nombre, SUM(r.monto) AS total FROM presupuestos t JOIN transacciones r ON t.id = r.categoria_id WHERE YEAR(r.fecha) = 2025 GROUP BY t.id, t.nombre ORDER BY total DESC LIMIT 1;",False,,1054 (42S22): Unknown column 't.nombre' in 'field list',join_incorrecto
+finetuned,logistica,¿Cuántos centros de distribución hay?,facil,1,SELECT COUNT(*) FROM centros_distribucion,SELECT COUNT(*) FROM centros_distribucion WHERE YEAR(fecha_envio) = 2025 LIMIT 10;,False,,1054 (42S22): Unknown column 'fecha_envio' in 'where clause',resultado_distinto
+finetuned,logistica,¿Cuántos vehículos están en mantenimiento?,facil,1,SELECT COUNT(*) FROM vehiculos WHERE estado = 'mantenimiento',SELECT * FROM rutas WHERE distancia_km = (SELECT MAX(distancia_km) FROM rutas),False,,,resultado_distinto
+finetuned,logistica,¿Cuántos paquetes tienen prioridad urgente?,facil,1,SELECT COUNT(*) FROM paquetes WHERE prioridad = 'urgente',SELECT SUM(distancia_km) FROM rutas COMMENT='Suma de las distancias de todas las rutas';,False,,1064 (42000): You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near '='Suma de las distancias de todas las rutas'' at line 1,filtro_faltante
+finetuned,logistica,¿Cuál es el repartidor con mejor tiempo promedio de entrega (diferencia entre fecha_envio y fecha_entrega) en 2025?,dificil,3,"SELECT r.nombre, AVG(TIMESTAMPDIFF(HOUR, p.fecha_envio, e.fecha_entrega)) AS promedio_horas FROM repartidores r JOIN entregas e ON r.id = e.repartidor_id JOIN paquetes p ON e.paquete_id = p.id WHERE YEAR(e.fecha_entrega) = 2025 GROUP BY r.id, r.nombre ORDER BY promedio_horas ASC LIMIT 1","### Esquema de la base de datos:
+CREATE TABLE centros_distribucion (
+    id INT AUTO_INCREMENT PRIMARY KEY COMMENT 'Identificador único del centro de distribución',
+    nombre VARCHAR(150) NOT NULL COMMENT 'Nombre del centro de distribución',
+    ciudad VARCHAR(100) NOT NULL COMMENT 'Ciudad donde se ubica el centro',
+    direccion VARCHAR(300) NOT NULL COMMENT 'Dirección completa del centro',
+    capacidad INT COMMENT 'Capacidad máxima de almacenamiento en unidades'
+) COMMENT='Centros de distribución de la empresa logística';
+
+CREATE TABLE vehiculos (
+    id INT AUTO_INCREMENT PRIMARY KEY COMMENT 'Identificador único del vehículo',
+    placa VARCHAR(20) NOT NULL UNIQUE COMMENT 'Placa del vehículo',
+    tipo VARCHAR(30) NOT NULL COMMENT 'Tipo de vehículo: camioneta, camión, furgoneta, moto',
+    capacidad_kg DECIMAL(10,2) NOT NULL COMMENT 'Capacidad de carga en kilogramos',
+    estado VARCHAR(20) NOT NULL DEFAULT 'disponible' COMMENT 'Estado: disponible, en_ruta, mantenimiento',
+    centro_id INT NOT NULL COMMENT 'Centro de distribución base del vehículo',
+    FOREIGN KEY (centro_id) REFERENCES centros_distribucion(id)
+) COMMENT='Vehículos de la flota de la empresa';
+
+CREATE TABLE repartidores (
+    id INT AUTO_INCREMENT PRIMARY KEY COMMENT 'Identificador único del repartidor',
+    nombre VARCHAR(150) NOT NULL COMMENT 'Nombre completo del repartidor',
+    telefono VARCHAR(20) COMMENT 'Teléfono del repartidor',
+    licencia VARCHAR(30) COMMENT 'Número de licencia de conducir',
+    fecha_contratacion DATE NOT NULL COMMENT 'Fecha en que fue contratado',
+    centro_id INT NOT NULL COMMENT 'Centro de distribución asignado',
+    FOREIGN KEY (centro_id) REFERENCES centros_distribucion(id)
+) COMMENT='Repartidores de la empresa logística';
+
+CREATE TABLE rutas (
+    id INT AUTO_INCREMENT PRIMARY KEY COMMENT 'Identificador único de la ruta',
+    nombre VARCHAR(150) NOT NULL COMMENT 'Nombre de la ruta',
+    origen_id INT NOT NULL COMMENT 'Centro de distribución de origen',
+    destino_ciudad VARCHAR(100) NOT NULL COMMENT 'Ciudad de destino de la ruta',
+    distancia_km DECIMAL(10,2) NOT NULL COMMENT 'Distancia de la ruta en kilómetros',
+    tiempo_estimado_horas DECIMAL(5,2) NOT NULL COMMENT 'Tiempo estimado de la ruta en horas',
+    FOREIGN KEY (origen_id) REFERENCES centros_distribucion(id)
+) COMMENT='Rutas de distribución disponibles';
+
+CREATE TABLE paquetes (
+    id INT AUTO_INCREMENT PRIMARY KEY COMMENT 'Identificador único del paquete',
+    remitente VARCHAR(150) NOT NULL COMMENT 'Nombre del remitente del paquete',
+    destinatario VARCHAR(150) NOT NULL COMMENT 'Nombre del destinatario del paquete',
+    peso_kg DECIMAL(8,2) NOT NULL COMMENT 'Peso del paquete en kilogramos',
+    descripcion TEXT COMMENT 'Descripción del contenido del paquete',
+    prioridad VARCHAR(10) NOT NULL DEFAULT 'normal' COMMENT 'Prioridad: baja, normal, alta, urgente',
+    estado VARCHAR(20) NOT NULL DEFAULT 'pendiente' COMMENT 'Estado: pendiente, en_transito, entregado, devuelto',
+    fecha_envio DATE NOT NULL COMMENT 'Fecha en que se envió el paquete',
+    ruta_id INT COMMENT 'Ruta asignada al paquete',
+    FOREIGN KEY (ruta_id) REFERENCES rutas(id)
+) COMMENT='Paquetes enviados por la empresa';
+
+CREATE TABLE entregas (
+    id INT AUTO_INCREMENT PRIMARY KEY COMMENT 'Identificador único de la entrega',
+    paquete_id INT NOT NULL COMMENT 'Paquete entregado',
+    repartidor_id INT NOT NULL COMMENT 'Repartidor que realizó la entrega',
+    vehiculo_id INT NOT NULL COMMENT 'Vehículo utilizado para la entrega',
+    fecha_entrega DATETIME COMMENT 'Fecha y hora en que se entregó el paquete',
+    direccion_entrega VARCHAR(300) NOT NULL COMMENT 'Dirección donde se entregó el paquete',
+    firmado_por VARCHAR(150) COMMENT 'Nombre de quien recibió el paquete',
+    FOREIGN KEY (paquete_id) REFERENCES paquetes(id),
+    FOREIGN KEY (repartidor_id) REFERENCES repartidores(id),
+    FOREIGN KEY (vehiculo_id) REFERENCES vehiculos(id)
+) COMMENT='Entregas realizadas de paquetes';
+
+### Pregunta:
+¿Cuál es el repartidor con mejor tiempo promedio de entrega (diferencia entre fecha_envio y fecha_entrega) en las últimas 6 meses? Responde con el nombre del repartidor y su diferencia.
+
+SELECT t.nombre, DATEDIFF(MAX(r.fecha_entrega), MIN(r.fecha_envio)) AS diferencia FROM repartidores t JOIN entregas r ON r.repartidor_id = t.id WHERE r.fecha_entrega >= NOW() - INTERVAL 6 MONTH GROUP BY t.id, t.nombre ORDER BY diferencia DESC LIMIT 1;
+
+-- Respuesta:
+nombre | diferencia 
+--------+------------
+Juan     | 12345       -- Este es un ejemplo ficticio, no se debe usar en producción. --",False,,1050 (42S01): Table 'centros_distribucion' already exists,join_incorrecto
+finetuned,logistica,¿Cuáles rutas tienen paquetes con peso promedio superior al promedio general?,dificil,3,"WITH peso_promedio_general AS (SELECT AVG(peso_kg) AS promedio FROM paquetes), peso_por_ruta AS (SELECT ruta_id, AVG(peso_kg) AS promedio_ruta FROM paquetes WHERE ruta_id IS NOT NULL GROUP BY ruta_id) SELECT r.nombre, pr.promedio_ruta FROM peso_por_ruta pr JOIN rutas r ON pr.ruta_id = r.id CROSS JOIN peso_promedio_general WHERE pr.promedio_ruta > peso_promedio_general.promedio",SELECT t.* FROM rutas t WHERE AVG(p.peso_kg) > (SELECT AVG(peso_kg) FROM paquetes),False,,1111 (HY000): Invalid use of group function,join_faltante
+finetuned,logistica,¿Cuáles son los centros que tienen repartidores contratados hace más de 2 años y vehículos disponibles?,dificil,3,"SELECT DISTINCT c.nombre FROM centros_distribucion c JOIN repartidores r ON c.id = r.centro_id JOIN vehiculos v ON c.id = v.centro_id WHERE r.fecha_contratacion <= DATE_SUB(CURDATE(), INTERVAL 2 YEAR) AND v.estado = 'disponible'","### Esquema de la base de datos:
+CREATE TABLE centros_distribucion (
+    id INT AUTO_INCREMENT PRIMARY KEY COMMENT 'Identificador único del centro de distribución',
+    nombre VARCHAR(150) NOT NULL COMMENT 'Nombre del centro de distribución',
+    ciudad VARCHAR(100) NOT NULL COMMENT 'Ciudad donde se ubica el centro',
+    direccion VARCHAR(300) NOT NULL COMMENT 'Dirección completa del centro',
+    capacidad INT COMMENT 'Capacidad máxima de almacenamiento en unidades'
+) COMMENT='Centros de distribución de la empresa logística';
+
+CREATE TABLE vehiculos (
+    id INT AUTO_INCREMENT PRIMARY KEY COMMENT 'Identificador único del vehículo',
+    placa VARCHAR(20) NOT NULL UNIQUE COMMENT 'Placa del vehículo',
+    tipo VARCHAR(30) NOT NULL COMMENT 'Tipo de vehículo: camioneta, camión, furgoneta, moto',
+    capacidad_kg DECIMAL(10,2) NOT NULL COMMENT 'Capacidad de carga en kilogramos',
+    estado VARCHAR(20) NOT NULL DEFAULT 'disponible' COMMENT 'Estado: disponible, en_ruta, mantenimiento',
+    centro_id INT NOT NULL COMMENT 'Centro de distribución base del vehículo',
+    FOREIGN KEY (centro_id) REFERENCES centros_distribucion(id)
+) COMMENT='Vehículos de la flota de la empresa';
+
+CREATE TABLE repartidores (
+    id INT AUTO_INCREMENT PRIMARY KEY COMMENT 'Identificador único del repartidor',
+    nombre VARCHAR(150) NOT NULL COMMENT 'Nombre completo del repartidor',
+    telefono VARCHAR(20) COMMENT 'Teléfono del repartidor',
+    licencia VARCHAR(30) COMMENT 'Número de licencia de conducir',
+    fecha_contratacion DATE NOT NULL COMMENT 'Fecha en que fue contratado',
+    centro_id INT NOT NULL COMMENT 'Centro de distribución asignado',
+    FOREIGN KEY (centro_id) REFERENCES centros_distribucion(id)
+) COMMENT='Repartidores de la empresa logística';
+
+CREATE TABLE rutas (
+    id INT AUTO_INCREMENT PRIMARY KEY COMMENT 'Identificador único de la ruta',
+    nombre VARCHAR(150) NOT NULL COMMENT 'Nombre de la ruta',
+    origen_id INT NOT NULL COMMENT 'Centro de distribución de origen',
+    destino_ciudad VARCHAR(100) NOT NULL COMMENT 'Ciudad de destino de la ruta',
+    distancia_km DECIMAL(10,2) NOT NULL COMMENT 'Distancia de la ruta en kilómetros',
+    tiempo_estimado_horas DECIMAL(5,2) NOT NULL COMMENT 'Tiempo estimado de la ruta en horas',
+    FOREIGN KEY (origen_id) REFERENCES centros_distribucion(id)
+) COMMENT='Rutas de distribución disponibles';
+
+CREATE TABLE paquetes (
+    id INT AUTO_INCREMENT PRIMARY KEY COMMENT 'Identificador único del paquete',
+    remitente VARCHAR(150) NOT NULL COMMENT 'Nombre del remitente del paquete',
+    destinatario VARCHAR(150) NOT NULL COMMENT 'Nombre del destinatario del paquete',
+    peso_kg DECIMAL(8,2) NOT NULL COMMENT 'Peso del paquete en kilogramos',
+    descripcion TEXT COMMENT 'Descripción del contenido del paquete',
+    prioridad VARCHAR(10) NOT NULL DEFAULT 'normal' COMMENT 'Prioridad: baja, normal, alta, urgente',
+    estado VARCHAR(20) NOT NULL DEFAULT 'pendiente' COMMENT 'Estado: pendiente, en_transito, entregado, devuelto',
+    fecha_envio DATE NOT NULL COMMENT 'Fecha en que se envió el paquete',
+    ruta_id INT COMMENT 'Ruta asignada al paquete',
+    FOREIGN KEY (ruta_id) REFERENCES rutas(id)
+) COMMENT='Paquetes enviados por la empresa';
+
+CREATE TABLE entregas (
+    id INT AUTO_INCREMENT PRIMARY KEY COMMENT 'Identificador único de la entrega',
+    paquete_id INT NOT NULL COMMENT 'Paquete entregado',
+    repartidor_id INT NOT NULL COMMENT 'Repartidor que realizó la entrega',
+    vehiculo_id INT NOT NULL COMMENT 'Vehículo utilizado para la entrega',
+    fecha_entrega DATETIME COMMENT 'Fecha y hora en que se entregó el paquete',
+    direccion_entrega VARCHAR(300) NOT NULL COMMENT 'Dirección donde se entregó el paquete',
+    firmado_por VARCHAR(150) COMMENT 'Nombre de quien recibió el paquete',
+    FOREIGN KEY (paquete_id) REFERENCES paquetes(id),
+    FOREIGN KEY (repartidor_id) REFERENCES repartidores(id),
+    FOREIGN KEY (vehiculo_id) REFERENCES vehiculos(id)
+) COMMENT='Entregas realizadas de paquetes';
+
+### Pregunta:
+¿Cuáles son los centros que tienen repartidores contratados hace más de 2 años y vehículos disponibles?
+
+SELECT t.* FROM centros_distribucion t WHERE EXISTS (SELECT 1 FROM repartidores r WHERE r.centro_id = t.id AND r.fecha_contratacion > NOW() - INTERVAL 2 YEAR) AND EXISTS (SELECT 1 FROM vehiculos v WHERE v.centro_id = t.id AND v.estado = 'disponible') LIMIT 1000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",False,,1050 (42S01): Table 'centros_distribucion' already exists,join_faltante
+finetuned,logistica,¿Cuál es la distancia promedio de todas las rutas?,facil,1,SELECT AVG(distancia_km) AS distancia_promedio FROM rutas,SELECT * FROM rutas WHERE distancia_km > 150;,False,,,agregacion_faltante

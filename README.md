@@ -21,8 +21,8 @@ Sistema de Text-to-SQL basado en fine-tuning de LLM con LoRA que genera consulta
 - Evaluación baseline y modelo fine-tuned completadas
 - EX Score: 0.1806 (baseline) → **0.7222** (LoRA), mejora de **+0.5417**
 - 30 de 41 preguntas respondidas correctamente en esquemas no vistos
-- Análisis de errores y experimento de inferencia completados
-- Presentación final incluida: `Presentacion_Text_to_SQL_LoRA.pptx`
+- Análisis de errores por categoría completado
+- Presentación final incluida en formato PowerPoint y PDF
 - Documentación y resultados finales completos
 
 ## Instalación
@@ -193,6 +193,6 @@ Text-to-SQL/
 
 ## Próximos Pasos
 1. Comparar la configuración actual con LoRA rank 32.
-2. Ampliar el experimento de inferencia con self-correction.
+2. Ejecutar y documentar el experimento de inferencia con self-correction.
 3. Evaluar la generalización con esquemas y datasets más grandes.
 

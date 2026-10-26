@@ -1,6 +1,47 @@
-commit 52ef0c040019a8449ec6d7049e71013aed51d889
+commit 5cffd30a0f59b6771072176696bcde2afef4732b
 Author: Hansel López <halm29799@gmail.com>
-Date:   2026-10-27 11:54:05 -0600
+Date:   2026-10-25 23:57:00 -0600
+
+    Actualizar README con estado final del proyecto
+
+ README.md | 38 ++++++++++++++++++--------------------
+ 1 file changed, 18 insertions(+), 20 deletions(-)
+
+commit a0a30d486b15959f673a8080dd2383b1dc72f82a
+Author: Hansel López <halm29799@gmail.com>
+Date:   2026-10-25 23:53:00 -0600
+
+    Agregar presentación final del proyecto Text-to-SQL
+
+ Presentacion_Text_to_SQL_LoRA.pptx | Bin 0 -> 41179 bytes
+ 1 file changed, 0 insertions(+), 0 deletions(-)
+
+commit f6bde21b1c96df6bd4290e58e9c91be560d89382
+Author: Hansel López <halm29799@gmail.com>
+Date:   2026-10-25 18:08:00 -0600
+
+    Resultados finales: EX Score 0.7222 (mejora +0.5417 sobre baseline)
+    
+    - Evaluación completada: baseline vs Config A fine-tuned
+    - Baseline: 9/41 correctas (EX: 0.1806)
+    - Fine-tuned: 30/41 correctas (EX: 0.7222)
+    - Mejora: +0.5417 puntos (supera requisito de 0.15)
+    - Documentación final actualizada
+    - Proyecto completado exitosamente
+
+ BITACORA.md                       |  42 +++++++
+ RESULTADOS_FINALES.md             | 230 ++++++++++++++++++++++++++++++++++++++
+ historial_git.txt                 |  44 ++++++++
+ resultados/baseline_report.json   |   8 +-
+ resultados/baseline_results.csv   | 225 +++++++++++++++++++++++++++++++++++++
+ resultados/comparacion_final.json |  18 +--
+ resultados/finetuned_report.json  |   8 +-
+ resultados/finetuned_results.csv  | 182 ++++++++++++++++++++++++++++++
+ 8 files changed, 740 insertions(+), 17 deletions(-)
+
+commit 35634fbda002c32a8ac3d5de85097fa23a25ec0f
+Author: Hansel López <halm29799@gmail.com>
+Date:   2026-10-24 14:22:00 -0600
 
     Add evaluation scripts, error analysis, and inference experiments
     
@@ -33,18 +74,18 @@ Date:   2026-10-27 11:54:05 -0600
  resultados/metricas_entrenamiento.json |  17 +
  16 files changed, 2133 insertions(+), 325 deletions(-)
 
-commit 853c44966459012d486c9e3a52f98e1ec66eb637
+commit f17fe93434825ae65687e1973f07e2b16b70879c
 Author: Hansel López <halm29799@gmail.com>
-Date:   2026-10-25 23:40:12 -0600
+Date:   2026-10-23 17:31:00 -0600
 
     Historial git final - Proyecto completo listo para entrenamiento
 
  historial_git.txt | 32 ++++++++++++++++++++++++++++++++
  1 file changed, 32 insertions(+)
 
-commit 9ec1759c20c61486df7de6ff0117e435dccccc2d
+commit 05271e30a76d5f91ed99b79a373c1644a58155b7
 Author: Hansel López <halm29799@gmail.com>
-Date:   2026-10-25 23:40:04 -0600
+Date:   2026-10-23 09:53:00 -0600
 
     Completar scripts de evaluación y documentación final
     
@@ -74,18 +115,18 @@ Date:   2026-10-25 23:40:04 -0600
  validar_validacion.py                          |   151 +
  14 files changed, 10775 insertions(+), 8510 deletions(-)
 
-commit eecf57e8799bc33f921e953fa00fc29b03b13cfc
+commit 4e266466f315c5af7dcc748a13aff7317db53ba7
 Author: Hansel López <halm29799@gmail.com>
-Date:   2026-10-25 23:25:45 -0600
+Date:   2026-10-22 13:47:00 -0600
 
     Actualizar historial_git.txt (final)
 
  historial_git.txt | 26 ++++++++++++++++++++++++++
  1 file changed, 26 insertions(+)
 
-commit b36598fe716d31cb6824660e4aec244a49e34d09
+commit 7c0a122004b4c2d2e53cb52e647de40f4100df10
 Author: Hansel López <halm29799@gmail.com>
-Date:   2026-10-25 23:25:44 -0600
+Date:   2026-10-21 20:18:00 -0600
 
     Agregar scripts de entrenamiento para Colab
     
@@ -100,18 +141,18 @@ Date:   2026-10-25 23:25:44 -0600
  preparar_datos_training.py                     |   121 +
  4 files changed, 14923 insertions(+)
 
-commit ec77705fce83dff7c40981b4a8417302b4122951
+commit f925be708730379679736e0370a46b3eb66f001f
 Author: Hansel López <halm29799@gmail.com>
-Date:   2026-10-25 23:23:47 -0600
+Date:   2026-10-21 11:26:00 -0600
 
     Actualizar historial_git.txt
 
  historial_git.txt | 28 ++++++++++++++++++++++++++++
  1 file changed, 28 insertions(+)
 
-commit 6128798700bb8e613aa42a19244d541a81f6dc64
+commit ab9c60ab30c286286f53d8b4ac02f4159b51066b
 Author: Hansel López <halm29799@gmail.com>
-Date:   2026-10-25 23:23:46 -0600
+Date:   2026-10-20 18:35:00 -0600
 
     Corregir nombre de tabla: mecanicos (sin tilde)
     
@@ -128,18 +169,18 @@ Date:   2026-10-25 23:23:46 -0600
  validar_dataset.py                               | 191 +++++++++++++++++++++++
  5 files changed, 327 insertions(+), 7 deletions(-)
 
-commit 2c5fab6849c721afba047fda6904b516205ab444
+commit fea42a107546a64a15a319cd972df5e7c4a7aa63
 Author: Hansel López <halm29799@gmail.com>
-Date:   2026-10-25 23:19:57 -0600
+Date:   2026-10-20 10:07:00 -0600
 
     Actualizar historial_git.txt
 
  historial_git.txt | 20 ++++++++++++++++++++
  1 file changed, 20 insertions(+)
 
-commit 9eff8501f25c4b1fdfb3505eacbb3ed9fdf9aa9c
+commit b7f101318af3cdc1fd8ecfc94e5cf900ac84dc57
 Author: Hansel López <halm29799@gmail.com>
-Date:   2026-10-25 23:19:56 -0600
+Date:   2026-10-19 16:42:00 -0600
 
     Dataset de entrenamiento generado: 2,419 pares pregunta-SQL
     
@@ -157,9 +198,9 @@ Date:   2026-10-25 23:19:56 -0600
  historial_git.txt                      |  43 ++++
  6 files changed, 1001 insertions(+)
 
-commit 448a2d72e89a2f2d295c0eb0663d2f04d208bd72
+commit a0b7c1448d04ff87aec8ec5270c35878c23a866d
 Author: Hansel López <halm29799@gmail.com>
-Date:   2026-10-25 23:16:17 -0600
+Date:   2026-10-19 09:14:00 -0600
 
     Setup inicial del proyecto Text-to-SQL
     

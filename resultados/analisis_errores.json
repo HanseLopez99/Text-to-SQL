@@ -1,0 +1,25 @@
+{
+  "total_preguntas": 41,
+  "preguntas_correctas": 30,
+  "preguntas_incorrectas": 11,
+  "tasa_exito": 0.7317073170731707,
+  "distribucion_errores": {
+    "resultado_distinto": 4,
+    "join_incorrecto": 3,
+    "join_faltante": 2,
+    "filtro_faltante": 1,
+    "agregacion_faltante": 1
+  },
+  "errores_por_nivel": {
+    "facil": {
+      "resultado_distinto": 3,
+      "join_incorrecto": 1,
+      "filtro_faltante": 1,
+      "agregacion_faltante": 1
+    },
+    "dificil": {
+      "join_incorrecto": 2,
+      "join_faltante": 2
+    }
+  }
+}
