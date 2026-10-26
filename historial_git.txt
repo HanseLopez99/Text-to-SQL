@@ -1,3 +1,47 @@
+commit 52ef0c040019a8449ec6d7049e71013aed51d889
+Author: Hansel López <halm29799@gmail.com>
+Date:   2026-10-27 11:54:05 -0600
+
+    Add evaluation scripts, error analysis, and inference experiments
+    
+    - entrenar_local.py: LoRA training script for Config A (rank=16)
+    - entrenar_config_b.py: LoRA training for Config B (rank=32)
+    - evaluar_completo.py: Complete evaluation baseline vs fine-tuned
+    - evaluar_config_b.py: Evaluation script for Config B
+    - experimento_inferencia.py: Self-correction inference experiment
+    - analisis_errores.py: Error categorization and analysis
+    - prediccion_ex.py: EX score prediction with justification
+    - notebooks/05_entrenamiento_lora.ipynb: Training documentation
+    - ESTADO_PROYECTO.md: Project status and next steps
+    - Initial evaluation results (baseline and fine-tuned)
+
+ ESTADO_PROYECTO.md                     | 324 +++++++++++++++++++
+ analisis_errores.py                    | 145 +++++++++
+ config.json                            |   2 +-
+ entrenar_config_b.py                   | 185 +++++++++++
+ entrenar_local.py                      | 216 +++++++++++++
+ evaluar_completo.py                    | 279 +++++++++++++++++
+ evaluar_config_b.py                    | 237 ++++++++++++++
+ experimento_inferencia.py              | 550 ++++++++++++++-------------------
+ notebooks/05_entrenamiento_lora.ipynb  | 269 ++++++++++++++++
+ prediccion_ex.py                       | 197 ++++++++++++
+ resultados/baseline_report.json        |   8 +
+ resultados/baseline_results.csv        |   1 +
+ resultados/comparacion_final.json      |  19 ++
+ resultados/finetuned_report.json       |   8 +
+ resultados/finetuned_results.csv       |   1 +
+ resultados/metricas_entrenamiento.json |  17 +
+ 16 files changed, 2133 insertions(+), 325 deletions(-)
+
+commit 853c44966459012d486c9e3a52f98e1ec66eb637
+Author: Hansel López <halm29799@gmail.com>
+Date:   2026-10-25 23:40:12 -0600
+
+    Historial git final - Proyecto completo listo para entrenamiento
+
+ historial_git.txt | 32 ++++++++++++++++++++++++++++++++
+ 1 file changed, 32 insertions(+)
+
 commit 9ec1759c20c61486df7de6ff0117e435dccccc2d
 Author: Hansel López <halm29799@gmail.com>
 Date:   2026-10-25 23:40:04 -0600

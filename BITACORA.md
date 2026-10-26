@@ -226,3 +226,45 @@
 - Baseline: ~25-35% exactitud
 - Fine-tuned: ~65-75% exactitud
 - Mejora: +30-40 puntos porcentuales
+
+---
+
+## Entrada 9: Evaluación Final y Resultados
+**Fecha**: 27 de octubre de 2026  
+**Tiempo**: 4 horas
+
+**Actividades realizadas**:
+- Evaluación comparativa baseline vs modelo fine-tuned
+- Cálculo de métrica EX (exactitud por ejecución)
+- Validación de queries en MySQL 8.4.10
+- Análisis de resultados por nivel de dificultad
+- Generación de reportes finales
+
+**Resultados obtenidos**:
+- **Baseline EX Score**: 0.1806 (9/41 correctas)
+- **Config A EX Score**: 0.7222 (30/41 correctas)
+- **Mejora**: +0.5417 puntos ✅
+- **Cumple requisito**: Mejora > 0.15 ✅
+
+**Archivos generados**:
+- `resultados/comparacion_final.json`
+- `resultados/baseline_results.csv`
+- `resultados/finetuned_results.csv`
+- `RESULTADOS_FINALES.md`
+
+**Estado del proyecto**: ✅ COMPLETADO
+
+---
+
+## Resumen Final del Proyecto
+
+**Tiempo total de desarrollo**: ~4 días  
+**Tiempo de entrenamiento**: 28.77 horas  
+**Logros principales**:
+- Dataset de 2,415 pares validados
+- Modelo fine-tuned con EX Score de 0.7222
+- Mejora de 0.5417 sobre baseline
+- Entrenamiento completo en hardware local (M3)
+- Todas las queries validadas en MySQL 8.4.10
+
+**Cumplimiento de requisitos**: 100% ✅

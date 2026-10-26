@@ -1,8 +1,8 @@
 {
   "modelo": "finetuned",
-  "preguntas_correctas": 0,
+  "preguntas_correctas": 30,
   "total_preguntas": 41,
-  "ex_score": 0,
-  "peso_correcto": 0,
-  "peso_total": 0
+  "ex_score": 0.7222222222222222,
+  "peso_correcto": 52,
+  "peso_total": 72
 }
